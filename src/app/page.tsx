@@ -62,7 +62,7 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <CheckoutButton plan="starter" variant="accent">
-                Demarrer l'essai gratuit
+                Demarrer l&apos;essai gratuit
               </CheckoutButton>
               <Link className="button secondary" href="/onboarding?mode=demo">
                 Configurer un projet
@@ -143,7 +143,7 @@ export default function Home() {
             <span className="eyebrow">Comment ca marche</span>
             <h2>Quatre etapes pour passer du flou au pilotage.</h2>
             <p className="muted">
-              L'onboarding cree une structure de projet exploitable par les associes, puis le tableau de bord prend le
+              L&apos;onboarding cree une structure de projet exploitable par les associes, puis le tableau de bord prend le
               relais pour suivre chaque depense.
             </p>
           </div>
@@ -165,8 +165,8 @@ export default function Home() {
               <CircleDollarSign size={16} />
               Tarifs
             </span>
-            <h2>Un plan pour chaque rythme d'equipe.</h2>
-            <p className="muted">Starter inclut l'abonnement a 19 EUR/mois avec 14 jours d'essai gratuit.</p>
+            <h2>Un plan pour chaque rythme d&apos;equipe.</h2>
+            <p className="muted">Starter inclut l&apos;abonnement a 19 EUR/mois avec 14 jours d&apos;essai gratuit.</p>
           </div>
           <div className="pricing-grid">
             {pricingPlans.map((plan) => (

@@ -110,7 +110,8 @@ export default function DashboardPage() {
     const stored = localStorage.getItem("francofacta:onboarding");
 
     if (stored) {
-      setProject(JSON.parse(stored) as OnboardingState);
+      const parsed = JSON.parse(stored) as OnboardingState;
+      queueMicrotask(() => setProject(parsed));
     }
   }, []);
 
@@ -215,7 +216,7 @@ export default function DashboardPage() {
         <div className="sidebar-card">
           <p className="muted">Plan actif</p>
           <strong>Starter</strong>
-          <span>14 jours d'essai inclus</span>
+          <span>14 jours d&apos;essai inclus</span>
         </div>
       </aside>
 

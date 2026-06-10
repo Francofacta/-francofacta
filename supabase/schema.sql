@@ -27,7 +27,12 @@ create table if not exists public.project_tabs (
   position int not null default 0
 );
 
-create type public.expense_status as enum ('Payee', 'A rembourser', 'En validation');
+do $$
+begin
+  create type public.expense_status as enum ('Payee', 'A rembourser', 'En validation');
+exception
+  when duplicate_object then null;
+end $$;
 
 create table if not exists public.expenses (
   id uuid primary key default gen_random_uuid(),

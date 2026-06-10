@@ -8,7 +8,7 @@ export function getStripe() {
   }
 
   return new Stripe(secretKey, {
-    apiVersion: "2025-11-17.clover",
+    apiVersion: "2026-05-27.dahlia",
     appInfo: {
       name: "FrancoFacta",
       version: "0.1.0"

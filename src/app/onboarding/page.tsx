@@ -5,7 +5,14 @@ import { useMemo, useState } from "react";
 import { ArrowRight, Check, Plus, Trash2 } from "lucide-react";
 
 const projectTypes = ["Commerce", "Restauration", "Service B2B", "Immobilier", "Evenementiel", "Studio creatif"];
-const currencies = ["EUR", "USD", "GBP", "CHF", "CAD", "MAD"];
+const currencies = [
+  { code: "EUR", label: "€ Euro" },
+  { code: "USD", label: "$ Dollar US" },
+  { code: "GBP", label: "£ Livre sterling" },
+  { code: "CHF", label: "CHF Franc suisse" },
+  { code: "CAD", label: "CAD Dollar canadien" },
+  { code: "MAD", label: "MAD Dirham marocain" }
+];
 const tabOptions = ["Depenses", "Justificatifs", "Remboursements", "Budget", "Synthese associes", "Exports"];
 
 type Member = {
@@ -23,7 +30,7 @@ const initialMembers: Member[] = [
 export default function OnboardingPage() {
   const [projectName, setProjectName] = useState("Ouverture boutique Lyon");
   const [projectType, setProjectType] = useState(projectTypes[0]);
-  const [currency, setCurrency] = useState("EUR");
+  const [currency, setCurrency] = useState(currencies[0].code);
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [tabs, setTabs] = useState<string[]>(["Depenses", "Justificatifs", "Remboursements", "Budget"]);
   const [status, setStatus] = useState("Configurez votre espace commun en moins de deux minutes.");
@@ -165,8 +172,8 @@ export default function OnboardingPage() {
             <label htmlFor="currency">Devise</label>
             <select className="select" id="currency" value={currency} onChange={(event) => setCurrency(event.target.value)}>
               {currencies.map((item) => (
-                <option key={item} value={item}>
-                  {item === "EUR" ? "€ Euro" : item === "USD" ? "$ Dollar US" : item === "GBP" ? "£ Livre sterling" : item}
+                <option key={item.code} value={item.code}>
+                  {item.label}
                 </option>
               ))}
             </select>
