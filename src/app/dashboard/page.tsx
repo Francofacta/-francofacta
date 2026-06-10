@@ -210,6 +210,13 @@ const categories = ["Toutes", "Travaux", "Marketing", "Outils", "Achats", "Trans
 const statuses = ["Tous", "Payée", "À rembourser", "En validation"];
 const revenueStatuses: Revenue["status"][] = ["Encaissé", "En attente", "En retard"];
 const activePlan = "pro";
+const memberBannerColors = [
+  "linear-gradient(135deg, #008c8c 0%, #16b8aa 100%)",
+  "linear-gradient(135deg, #5b21b6 0%, #8b5cf6 100%)",
+  "linear-gradient(135deg, #167a4a 0%, #27b36a 100%)",
+  "linear-gradient(135deg, #1d4ed8 0%, #38bdf8 100%)",
+  "linear-gradient(135deg, #be185d 0%, #f472b6 100%)"
+];
 
 function getDashboardAnchor(tab: string) {
   const normalizedTab = tab
@@ -644,28 +651,33 @@ export default function DashboardPage() {
           </article>
         </section>
 
-        <section className="member-kpi-grid" aria-label="KPI par membre">
-          {memberKpis.map((member) => (
+        <section className="member-kpi-banner" aria-label="Bannière KPI des avances">
+          <article className="member-banner-card net-total-card" aria-label="Net total avancé">
+            <span>NET TOTAL</span>
+            <strong>{formatter.format(totalExpenses)}</strong>
+            <small>Total avancé</small>
+          </article>
+          {memberKpis.map((member, index) => (
             <button
-              className={`card member-kpi member-kpi-button ${selectedMemberName === member.name ? "active" : ""}`}
+              className={`member-banner-card member-banner-button ${
+                selectedMemberName === member.name ? "active" : ""
+              }`}
               key={member.name}
               type="button"
+              style={{ background: memberBannerColors[index % memberBannerColors.length] }}
               onClick={() => setSelectedMemberName(member.name)}
+              aria-pressed={selectedMemberName === member.name}
             >
-              <div className="member-title">
-                <span className="avatar-dot" style={{ background: member.color }} />
-                <div>
-                  <strong>{member.name}</strong>
-                  <p className="muted">{member.role}</p>
-                </div>
-              </div>
-              <div className="member-values">
-                <span>{formatter.format(member.total)} avancés</span>
-                <span>{formatter.format(member.owed)} dus à ce membre</span>
-                <span>{member.count} transactions</span>
-              </div>
+              <span>{member.name.toUpperCase()}</span>
+              <strong>{formatter.format(member.total)}</strong>
+              <small>Total avancé · {member.count} transactions</small>
             </button>
           ))}
+          <article className="member-banner-card reimbursements-card" aria-label="Remboursements à traiter">
+            <span>REMBOURSEMENTS</span>
+            <strong>{formatter.format(totalPending)}</strong>
+            <small>À rembourser</small>
+          </article>
         </section>
 
         {selectedMember ? (
@@ -681,19 +693,56 @@ export default function DashboardPage() {
               </div>
               <div className="summary-chips">
                 <span>Total avancé : {formatter.format(selectedMember.total)}</span>
-                <span>À lui rembourser : {formatter.format(selectedMember.owed)}</span>
-                <span>À payer : {formatter.format(selectedMember.toPay)}</span>
+                <span>Part attendue : {percentageFormatter.format(selectedMember.sharePercentage)} %</span>
+                <span>Reste à avancer : {formatter.format(Math.max(selectedMember.expectedAdvance - selectedMember.total, 0))}</span>
               </div>
             </div>
+            <div className="member-detail-stats">
+              <article>
+                <span>Total avancé</span>
+                <strong>{formatter.format(selectedMember.total)}</strong>
+              </article>
+              <article>
+                <span>Part attendue</span>
+                <strong>{percentageFormatter.format(selectedMember.sharePercentage)} %</strong>
+                <small>{formatter.format(selectedMember.expectedAdvance)}</small>
+              </article>
+              <article>
+                <span>Reste à avancer</span>
+                <strong>{formatter.format(Math.max(selectedMember.expectedAdvance - selectedMember.total, 0))}</strong>
+              </article>
+              <article>
+                <span>Solde</span>
+                <strong className={selectedMember.balance >= 0 ? "positive-balance" : "negative-balance"}>
+                  {selectedMember.balance >= 0
+                    ? `${formatter.format(selectedMember.balance)} à recevoir`
+                    : `${formatter.format(Math.abs(selectedMember.balance))} à payer`}
+                </strong>
+              </article>
+            </div>
             <div className="compact-list">
-              {selectedMember.transactions.map((expense) => (
-                <div className="compact-row" key={expense.id}>
-                  <span>{new Date(expense.date).toLocaleDateString("fr-FR")}</span>
-                  <strong>{expense.title}</strong>
-                  <span>{expense.paymentMethod}</span>
-                  <strong>{formatter.format(expense.amount)}</strong>
-                </div>
-              ))}
+              {selectedMember.transactions.length > 0 ? (
+                selectedMember.transactions.map((expense) => {
+                  const receiptState = getReceiptState(expense);
+
+                  return (
+                    <div className="compact-row member-transaction-row" key={expense.id}>
+                      <span>{new Date(expense.date).toLocaleDateString("fr-FR")}</span>
+                      <div>
+                        <strong>{expense.title}</strong>
+                        <p className="muted">{expense.category} · {expense.paymentMethod}</p>
+                      </div>
+                      <span className={`transaction-receipt ${receiptState}`}>
+                        {expense.receipt ? <ReceiptText size={16} /> : <FileUp size={16} />}
+                        {expense.receipt ?? (expense.receiptRequired ? "Justificatif requis" : "Justificatif manquant")}
+                      </span>
+                      <strong>{formatter.format(expense.amount)}</strong>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="muted">Aucune transaction avancée par ce membre pour le moment.</p>
+              )}
             </div>
           </section>
         ) : null}
