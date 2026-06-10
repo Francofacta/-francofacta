@@ -952,6 +952,74 @@ th {
   letter-spacing: -0.04em;
 }
 
+.member-kpi-banner {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(176px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.member-banner-card {
+  display: grid;
+  align-content: space-between;
+  gap: 16px;
+  min-height: 150px;
+  border: 0;
+  border-radius: 28px;
+  padding: 20px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 24px 70px rgba(15, 15, 15, 0.15);
+}
+
+.member-banner-card span {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.member-banner-card strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.85rem, 3vw, 2.8rem);
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+}
+
+.member-banner-card small {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 900;
+}
+
+.member-banner-button {
+  text-align: left;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    outline-color 180ms ease;
+}
+
+.member-banner-button:hover,
+.member-banner-button.active {
+  transform: translateY(-2px);
+  box-shadow: 0 30px 80px rgba(15, 15, 15, 0.22);
+}
+
+.member-banner-button.active {
+  outline: 4px solid rgba(255, 255, 255, 0.84);
+  outline-offset: -8px;
+}
+
+.net-total-card {
+  background: linear-gradient(135deg, #0f0f0f 0%, #34302b 100%);
+}
+
+.reimbursements-card {
+  background: linear-gradient(135deg, #c94a1a 0%, #f59e0b 100%);
+}
+
 .member-kpi {
   display: grid;
   gap: 18px;
@@ -1044,6 +1112,34 @@ th {
   background: rgba(15, 15, 15, 0.06);
   color: var(--muted);
   font-weight: 900;
+}
+
+.member-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.member-detail-stats article {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.member-detail-stats span,
+.member-detail-stats small {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.member-detail-stats strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  letter-spacing: -0.05em;
+  line-height: 1;
 }
 
 .rentability-header {
@@ -1211,6 +1307,37 @@ td p {
 .compact-row span {
   color: var(--muted);
   font-weight: 800;
+}
+
+.member-transaction-row {
+  grid-template-columns: 120px minmax(180px, 1fr) minmax(180px, auto) minmax(120px, auto);
+}
+
+.member-transaction-row p {
+  margin: 4px 0 0;
+}
+
+.transaction-receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: rgba(15, 15, 15, 0.06);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.transaction-receipt.uploaded {
+  background: rgba(32, 113, 79, 0.12);
+  color: var(--success);
+}
+
+.transaction-receipt.required {
+  background: rgba(201, 74, 26, 0.14);
+  color: var(--accent-dark);
 }
 
 .receipt-gallery {
@@ -1487,6 +1614,7 @@ td p {
   .rentability-grid,
   .receipt-gallery,
   .balance-grid,
+  .member-detail-stats,
   .inline-form,
   .revenue-form,
   .compact-row {
