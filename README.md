@@ -12,7 +12,7 @@ avances par membre, justificatifs, remboursements et budget consolidé.
 
 ## Fonctionnalités incluses
 
-- Landing page en français avec hero, douleurs, fonctionnement en 4 étapes, tarifs Starter/Pro/Studio et CTA.
+- Landing page en français avec hero, douleurs, fonctionnement en 4 étapes, tarifs Perso/Starter/Pro/Sur mesure et CTA.
 - Authentification Supabase email/mot de passe.
 - Onboarding projet: nom, type, membres, rôles, couleurs, onglets et devise (€/$/£/CHF/CAD/MAD).
 - Dashboard dépenses: KPI par associé, filtres, table détaillée, modale d'ajout et upload de justificatif.
@@ -41,18 +41,18 @@ alors conservées dans `localStorage`.
 
 ## Configuration Stripe
 
-1. Créez trois produits/prix récurrents mensuels:
+1. Créez les produits/prix Stripe:
+   - Perso: 29 EUR en paiement unique pour 12 mois d'accès
    - Starter: 19 EUR/mois
    - Pro: 39 EUR/mois
-   - Studio: 79 EUR/mois
 2. Copiez les price ids dans:
+   - `STRIPE_PERSO_PRICE_ID`
    - `STRIPE_STARTER_PRICE_ID`
    - `STRIPE_PRO_PRICE_ID`
-   - `STRIPE_STUDIO_PRICE_ID`
 3. Ajoutez `STRIPE_SECRET_KEY`.
 4. Créez un webhook vers `/api/stripe/webhook` et ajoutez `STRIPE_WEBHOOK_SECRET`.
 
-La route Checkout applique `trial_period_days: 14` aux abonnements.
+La route Checkout applique `trial_period_days: 14` à l'abonnement Starter.
 
 ## Déploiement Vercel
 

@@ -29,7 +29,7 @@ create table if not exists public.project_tabs (
 
 do $$
 begin
-  create type public.expense_status as enum ('Payee', 'A rembourser', 'En validation');
+  create type public.expense_status as enum ('Payée', 'À rembourser', 'En validation');
 exception
   when duplicate_object then null;
 end $$;

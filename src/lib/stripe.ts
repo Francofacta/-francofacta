@@ -4,7 +4,7 @@ export function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
 
   if (!secretKey) {
-    throw new Error("STRIPE_SECRET_KEY est requis pour creer une session Stripe.");
+    throw new Error("STRIPE_SECRET_KEY est requis pour créer une session Stripe.");
   }
 
   return new Stripe(secretKey, {

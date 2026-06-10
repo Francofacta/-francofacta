@@ -28,7 +28,7 @@ type Expense = {
   category: string;
   member: string;
   amount: number;
-  status: "Payee" | "A rembourser" | "En validation";
+  status: "Payée" | "À rembourser" | "En validation";
   receipt?: string;
 };
 
@@ -44,9 +44,9 @@ const defaultProject: OnboardingState = {
   projectName: "Ouverture boutique Lyon",
   projectType: "Commerce",
   currency: "EUR",
-  tabs: ["Depenses", "Justificatifs", "Remboursements", "Budget", "Agenda", "Contacts"],
+  tabs: ["Dépenses", "Justificatifs", "Remboursements", "Budget", "Agenda", "Contacts"],
   members: [
-    { name: "Camille", role: "Operations", color: "#c94a1a" },
+    { name: "Camille", role: "Opérations", color: "#c94a1a" },
     { name: "Yanis", role: "Finance", color: "#0f0f0f" },
     { name: "Sofia", role: "Marketing", color: "#2563eb" }
   ]
@@ -60,17 +60,17 @@ const initialExpenses: Expense[] = [
     category: "Travaux",
     member: "Camille",
     amount: 3420,
-    status: "Payee",
+    status: "Payée",
     receipt: "facture-menuisier.pdf"
   },
   {
     id: "e2",
     date: "2026-06-05",
-    title: "Enseigne facade",
+    title: "Enseigne façade",
     category: "Marketing",
     member: "Yanis",
     amount: 1880,
-    status: "A rembourser",
+    status: "À rembourser",
     receipt: "devis-enseigne.pdf"
   },
   {
@@ -89,19 +89,19 @@ const initialExpenses: Expense[] = [
     category: "Achats",
     member: "Yanis",
     amount: 5120,
-    status: "Payee",
+    status: "Payée",
     receipt: "stock-lancement.csv"
   }
 ];
 
 const categories = ["Toutes", "Travaux", "Marketing", "Outils", "Achats", "Transport", "Honoraires"];
-const statuses = ["Tous", "Payee", "A rembourser", "En validation"];
+const statuses = ["Tous", "Payée", "À rembourser", "En validation"];
 const activePlan = "pro";
 
 function getDashboardAnchor(tab: string) {
   const normalizedTab = tab.toLowerCase();
 
-  if (normalizedTab.includes("rentabilite")) {
+  if (normalizedTab.includes("rentabilité")) {
     return "#rentability";
   }
 
@@ -116,6 +116,14 @@ function getDashboardAnchor(tab: string) {
   return "#expenses";
 }
 
+function getStatusClass(status: Expense["status"]) {
+  return status
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replaceAll(" ", "-");
+}
+
 export default function DashboardPage() {
   const [project, setProject] = useState<OnboardingState>(defaultProject);
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
@@ -124,7 +132,7 @@ export default function DashboardPage() {
   const [category, setCategory] = useState("Toutes");
   const [status, setStatus] = useState("Tous");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState("Ajoutez une depense avec son justificatif.");
+  const [uploadStatus, setUploadStatus] = useState("Ajoutez une dépense avec son justificatif.");
   const isProPlan = activePlan === "pro";
 
   useEffect(() => {
@@ -163,7 +171,7 @@ export default function DashboardPage() {
     const tabs = [...project.tabs, "Agenda", "Contacts"];
 
     if (isProPlan) {
-      tabs.push("Rentabilite");
+      tabs.push("Rentabilité");
     }
 
     return [...new Set(tabs)];
@@ -175,7 +183,7 @@ export default function DashboardPage() {
         const memberExpenses = expenses.filter((expense) => expense.member === member.name);
         const total = memberExpenses.reduce((sum, expense) => sum + expense.amount, 0);
         const pending = memberExpenses
-          .filter((expense) => expense.status === "A rembourser")
+          .filter((expense) => expense.status === "À rembourser")
           .reduce((sum, expense) => sum + expense.amount, 0);
 
         return {
@@ -190,7 +198,7 @@ export default function DashboardPage() {
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const totalPending = expenses
-    .filter((expense) => expense.status === "A rembourser")
+    .filter((expense) => expense.status === "À rembourser")
     .reduce((sum, expense) => sum + expense.amount, 0);
   const grossMargin = revenues - totalExpenses;
   const marginRate = revenues > 0 ? (grossMargin / revenues) * 100 : 0;
@@ -211,13 +219,13 @@ export default function DashboardPage() {
       const { error } = await supabase.storage.from("expense-receipts").upload(path, file);
 
       if (error) {
-        setUploadStatus(`Justificatif non envoye: ${error.message}`);
+        setUploadStatus(`Justificatif non envoyé : ${error.message}`);
       } else {
         receiptName = path;
-        setUploadStatus("Justificatif envoye dans Supabase Storage.");
+        setUploadStatus("Justificatif envoyé dans Supabase Storage.");
       }
     } else if (file instanceof File && file.name) {
-      setUploadStatus("Mode demo: le nom du fichier est conserve localement.");
+      setUploadStatus("Mode démo : le nom du fichier est conservé localement.");
     }
 
     const nextExpense: Expense = {
@@ -253,7 +261,7 @@ export default function DashboardPage() {
         <div className="sidebar-card">
           <p className="muted">Plan actif</p>
           <strong>Pro</strong>
-          <span>Module rentabilite actif</span>
+          <span>Module rentabilité actif</span>
         </div>
       </aside>
 
@@ -265,7 +273,7 @@ export default function DashboardPage() {
               {project.projectType}
             </span>
             <h1>{project.projectName}</h1>
-            <p className="muted">Vue consolidee des depenses, avances et justificatifs entre associes.</p>
+            <p className="muted">Vue consolidée des dépenses, avances et justificatifs entre associés.</p>
           </div>
           <div className="dashboard-actions">
             <button className="button secondary" type="button" onClick={() => window.print()}>
@@ -274,7 +282,7 @@ export default function DashboardPage() {
             </button>
             <button className="button accent" type="button" onClick={() => setIsModalOpen(true)}>
               <Plus size={18} />
-              Ajouter une depense
+              Ajouter une dépense
             </button>
           </div>
         </header>
@@ -282,17 +290,17 @@ export default function DashboardPage() {
         <section className="metric-grid" aria-label="Indicateurs globaux">
           <article className="card metric-card">
             <ReceiptText size={24} />
-            <span>Total depenses</span>
+            <span>Total dépenses</span>
             <strong>{formatter.format(totalExpenses)}</strong>
           </article>
           <article className="card metric-card">
             <ArrowDownUp size={24} />
-            <span>A rembourser</span>
+            <span>À rembourser</span>
             <strong>{formatter.format(totalPending)}</strong>
           </article>
           <article className="card metric-card">
             <Users size={24} />
-            <span>Associes</span>
+            <span>Associés</span>
             <strong>{project.members.length}</strong>
           </article>
         </section>
@@ -309,7 +317,7 @@ export default function DashboardPage() {
               </div>
               <div className="member-values">
                 <span>{formatter.format(member.total)} avances</span>
-                <span>{formatter.format(member.pending)} a rembourser</span>
+                <span>{formatter.format(member.pending)} à rembourser</span>
                 <span>{member.count} lignes</span>
               </div>
             </article>
@@ -322,7 +330,7 @@ export default function DashboardPage() {
               <span className="avatar-dot" style={{ background: "#c94a1a" }} />
               <div>
                 <strong>Agenda projet</strong>
-                <p className="muted">Jalons, echeances et relances partagees.</p>
+                <p className="muted">Jalons, échéances et relances partagées.</p>
               </div>
             </div>
             <div className="member-values">
@@ -334,7 +342,7 @@ export default function DashboardPage() {
               <span className="avatar-dot" style={{ background: "#0f0f0f" }} />
               <div>
                 <strong>Contacts</strong>
-                <p className="muted">Partenaires, fournisseurs et intervenants reunis.</p>
+                <p className="muted">Partenaires, fournisseurs et intervenants réunis.</p>
               </div>
             </div>
             <div className="member-values">
@@ -346,7 +354,7 @@ export default function DashboardPage() {
               <span className="avatar-dot" style={{ background: "#2563eb" }} />
               <div>
                 <strong>Export PDF</strong>
-                <p className="muted">Synthese partageable depuis le tableau de bord.</p>
+                <p className="muted">Synthèse partageable depuis le tableau de bord.</p>
               </div>
             </div>
             <div className="member-values">
@@ -356,18 +364,18 @@ export default function DashboardPage() {
         </section>
 
         {isProPlan ? (
-          <section className="card rentability-panel" id="rentability" aria-label="Module rentabilite Pro">
+          <section className="card rentability-panel" id="rentability" aria-label="Module rentabilité Pro">
             <div className="rentability-header">
               <div>
                 <span className="eyebrow">
                   <TrendingUp size={16} />
                   Module Pro
                 </span>
-                <h2>Rentabilite projet</h2>
+                <h2>Rentabilité projet</h2>
                 <p className="muted">Disponible uniquement avec le plan Pro.</p>
               </div>
               <label className="rentability-input" htmlFor="project-revenues">
-                <span>Revenus prevus ou encaisses</span>
+                <span>Revenus prévus ou encaissés</span>
                 <input
                   className="input"
                   id="project-revenues"
@@ -381,7 +389,7 @@ export default function DashboardPage() {
             </div>
             <div className="rentability-grid">
               <article className="metric-card rentability-metric">
-                <span>Total depenses</span>
+                <span>Total dépenses</span>
                 <strong>{formatter.format(totalExpenses)}</strong>
               </article>
               <article className="metric-card rentability-metric">
@@ -398,7 +406,7 @@ export default function DashboardPage() {
               </article>
             </div>
             <p className="muted rentability-note">
-              Projection calculee avec les depenses saisies et les avances restantes a rembourser.
+              Projection calculée avec les dépenses saisies et les avances restantes à rembourser.
             </p>
           </section>
         ) : null}
@@ -408,7 +416,7 @@ export default function DashboardPage() {
             <div>
               <span className="eyebrow">
                 <Filter size={16} />
-                Depenses
+                Dépenses
               </span>
               <h2>Journal projet</h2>
             </div>
@@ -435,8 +443,8 @@ export default function DashboardPage() {
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Depense</th>
-                  <th>Associe</th>
+                  <th>Dépense</th>
+                  <th>Associé</th>
                   <th>Montant</th>
                   <th>Statut</th>
                   <th>Justificatif</th>
@@ -453,11 +461,11 @@ export default function DashboardPage() {
                     <td>{expense.member}</td>
                     <td>{formatter.format(expense.amount)}</td>
                     <td>
-                      <span className={`status-badge ${expense.status.toLowerCase().replaceAll(" ", "-")}`}>
+                      <span className={`status-badge ${getStatusClass(expense.status)}`}>
                         {expense.status}
                       </span>
                     </td>
-                    <td>{expense.receipt ? <span className="receipt-name">{expense.receipt}</span> : "A ajouter"}</td>
+                    <td>{expense.receipt ? <span className="receipt-name">{expense.receipt}</span> : "À ajouter"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -474,14 +482,14 @@ export default function DashboardPage() {
             </button>
             <span className="eyebrow">
               <FileUp size={16} />
-              Nouvelle depense
+              Nouvelle dépense
             </span>
-            <h2 id="expense-modal-title">Ajouter une depense</h2>
+            <h2 id="expense-modal-title">Ajouter une dépense</h2>
             <p className="muted">{uploadStatus}</p>
             <form className="modal-form" onSubmit={addExpense}>
               <div className="form-grid-two">
                 <div className="form-field">
-                  <label htmlFor="title">Libelle</label>
+                  <label htmlFor="title">Libellé</label>
                   <input className="input" id="title" name="title" required placeholder="Ex: Billets train salon" />
                 </div>
                 <div className="form-field">
@@ -491,7 +499,7 @@ export default function DashboardPage() {
               </div>
               <div className="form-grid-two">
                 <div className="form-field">
-                  <label htmlFor="member">Associe payeur</label>
+                  <label htmlFor="member">Associé payeur</label>
                   <select className="select" id="member" name="member">
                     {project.members.map((member) => (
                       <option key={member.name}>{member.name}</option>
@@ -499,7 +507,7 @@ export default function DashboardPage() {
                   </select>
                 </div>
                 <div className="form-field">
-                  <label htmlFor="category">Categorie</label>
+                  <label htmlFor="category">Catégorie</label>
                   <select className="select" id="category" name="category">
                     {categories
                       .filter((item) => item !== "Toutes")
@@ -530,7 +538,7 @@ export default function DashboardPage() {
                 <input className="input" id="receipt" name="receipt" type="file" accept="image/*,.pdf,.csv" />
               </div>
               <button className="button accent" type="submit">
-                Enregistrer la depense
+                Enregistrer la dépense
               </button>
             </form>
           </section>

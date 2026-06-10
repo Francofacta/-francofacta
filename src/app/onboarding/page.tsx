@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Plus, Trash2 } from "lucide-react";
 
-const projectTypes = ["Commerce", "Restauration", "Service B2B", "Immobilier", "Evenementiel", "Studio creatif"];
+const projectTypes = ["Commerce", "Restauration", "Service B2B", "Immobilier", "Événementiel", "Créatif"];
 const currencies = [
   { code: "EUR", label: "€ Euro" },
   { code: "USD", label: "$ Dollar US" },
@@ -13,7 +13,7 @@ const currencies = [
   { code: "CAD", label: "CAD Dollar canadien" },
   { code: "MAD", label: "MAD Dirham marocain" }
 ];
-const tabOptions = ["Depenses", "Justificatifs", "Remboursements", "Budget", "Synthese associes", "Exports"];
+const tabOptions = ["Dépenses", "Justificatifs", "Remboursements", "Budget", "Synthèse associés", "Exports"];
 
 type Member = {
   id: string;
@@ -23,7 +23,7 @@ type Member = {
 };
 
 const initialMembers: Member[] = [
-  { id: "m1", name: "Camille", role: "Operations", color: "#c94a1a" },
+  { id: "m1", name: "Camille", role: "Opérations", color: "#c94a1a" },
   { id: "m2", name: "Yanis", role: "Finance", color: "#0f0f0f" }
 ];
 
@@ -32,7 +32,7 @@ export default function OnboardingPage() {
   const [projectType, setProjectType] = useState(projectTypes[0]);
   const [currency, setCurrency] = useState(currencies[0].code);
   const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [tabs, setTabs] = useState<string[]>(["Depenses", "Justificatifs", "Remboursements", "Budget"]);
+  const [tabs, setTabs] = useState<string[]>(["Dépenses", "Justificatifs", "Remboursements", "Budget"]);
   const [status, setStatus] = useState("Configurez votre espace commun en moins de deux minutes.");
   const [loading, setLoading] = useState(false);
 
@@ -69,7 +69,7 @@ export default function OnboardingPage() {
     event.preventDefault();
 
     if (!isReady) {
-      setStatus("Ajoutez au moins un projet et completez chaque membre.");
+      setStatus("Ajoutez au moins un projet et complétez chaque membre.");
       return;
     }
 
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
         throw new Error(result.error ?? "Sauvegarde impossible.");
       }
 
-      setStatus(result.mode === "demo" ? "Mode demo sauvegarde localement. Redirection..." : "Projet cree. Redirection...");
+      setStatus(result.mode === "demo" ? "Mode démo sauvegardé localement. Redirection..." : "Projet créé. Redirection...");
       window.location.href = "/dashboard";
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Erreur inconnue.");
@@ -115,7 +115,7 @@ export default function OnboardingPage() {
           FrancoFacta
         </Link>
         <Link className="button secondary" href="/dashboard">
-          Passer en demo
+          Passer en démo
         </Link>
       </header>
 
@@ -125,16 +125,16 @@ export default function OnboardingPage() {
             <Check size={16} />
             Onboarding projet
           </span>
-          <h1>Parametrez votre espace associes.</h1>
+          <h1>Paramétrez votre espace associés.</h1>
           <p className="muted">
-            FrancoFacta cree les bonnes vues des le depart: membres, onglets, devise et type de projet pour suivre les
-            depenses sans tableur.
+            FrancoFacta crée les bonnes vues dès le départ : membres, onglets, devise et type de projet pour suivre les
+            dépenses sans tableur.
           </p>
           <div className="setup-summary card">
             <strong>{projectName || "Votre projet"}</strong>
             <span>{projectType}</span>
             <span>{currency}</span>
-            <span>{members.length} associes</span>
+            <span>{members.length} associés</span>
           </div>
         </aside>
 
@@ -181,7 +181,7 @@ export default function OnboardingPage() {
 
           <div className="form-field">
             <div className="field-row">
-              <label>Membres associes</label>
+              <label>Membres associés</label>
               <button className="small-action" type="button" onClick={addMember}>
                 <Plus size={16} />
                 Ajouter
@@ -201,7 +201,7 @@ export default function OnboardingPage() {
                     className="input"
                     value={member.role}
                     onChange={(event) => updateMember(member.id, "role", event.target.value)}
-                    placeholder="Role"
+                    placeholder="Rôle"
                     required
                   />
                   <input
@@ -220,7 +220,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="form-field">
-            <label>Onglets a activer</label>
+            <label>Onglets à activer</label>
             <div className="tabs-selector">
               {tabOptions.map((tab) => (
                 <button
@@ -236,7 +236,7 @@ export default function OnboardingPage() {
           </div>
 
           <button className="button accent" type="submit" disabled={loading}>
-            {loading ? "Creation..." : "Creer mon tableau de bord"}
+            {loading ? "Création..." : "Créer mon tableau de bord"}
             <ArrowRight size={18} />
           </button>
         </form>
