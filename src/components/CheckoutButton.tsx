@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import type { PlanKey } from "@/lib/pricing";
+import type { CheckoutPlanKey } from "@/lib/pricing";
 
 type CheckoutButtonProps = {
-  plan: PlanKey;
+  plan: CheckoutPlanKey;
   children: React.ReactNode;
   variant?: "primary" | "accent" | "secondary";
 };

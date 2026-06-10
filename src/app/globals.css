@@ -409,10 +409,15 @@ th {
   font-size: 0.88rem;
 }
 
-.pain-grid,
-.pricing-grid {
+.pain-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -854,6 +859,13 @@ th {
   line-height: 1.7;
 }
 
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .metric-grid,
 .member-kpi-grid {
   display: grid;
@@ -922,6 +934,53 @@ th {
 
 .expenses-panel {
   padding: 24px;
+}
+
+.rentability-panel {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+
+.rentability-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.rentability-header h2 {
+  margin: 12px 0 8px;
+  font-size: 2.4rem;
+}
+
+.rentability-input {
+  display: grid;
+  gap: 8px;
+  min-width: min(280px, 100%);
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.rentability-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.rentability-metric {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.rentability-metric strong {
+  font-size: clamp(1.7rem, 2.3vw, 2.3rem);
+}
+
+.rentability-note {
+  margin-bottom: 0;
 }
 
 .expenses-toolbar {
@@ -1139,14 +1198,21 @@ td p {
   }
 
   .dashboard-header,
-  .expenses-toolbar {
+  .expenses-toolbar,
+  .rentability-header {
     flex-direction: column;
   }
 
   .metric-grid,
   .member-kpi-grid,
-  .filters {
+  .filters,
+  .rentability-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-actions {
+    justify-content: stretch;
+    width: 100%;
   }
 
   .expense-modal {

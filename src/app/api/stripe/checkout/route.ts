@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getPriceId, type PlanKey } from "@/lib/pricing";
+import { getCheckoutMode, getPriceId, type CheckoutPlanKey } from "@/lib/pricing";
 import { getStripe } from "@/lib/stripe";
 
 type CheckoutBody = {
-  plan?: PlanKey;
+  plan?: CheckoutPlanKey;
   email?: string;
 };
 
@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as CheckoutBody;
     const plan = body.plan ?? "starter";
     const priceId = getPriceId(plan);
+    const checkoutMode = getCheckoutMode(plan);
 
     if (!priceId) {
       return NextResponse.json(
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: checkoutMode,
       customer_email: body.email,
       line_items: [
         {
@@ -33,13 +34,23 @@ export async function POST(request: Request) {
           quantity: 1
         }
       ],
-      subscription_data: {
-        trial_period_days: 14,
-        metadata: {
-          app: "francofacta",
-          plan
-        }
-      },
+      ...(checkoutMode === "subscription"
+        ? {
+            subscription_data: {
+              metadata: {
+                app: "francofacta",
+                plan
+              }
+            }
+          }
+        : {
+            payment_intent_data: {
+              metadata: {
+                app: "francofacta",
+                plan
+              }
+            }
+          }),
       allow_promotion_codes: true,
       success_url: `${origin}/onboarding?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/?checkout=cancelled`

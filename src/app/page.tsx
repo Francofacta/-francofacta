@@ -62,7 +62,7 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <CheckoutButton plan="starter" variant="accent">
-                Demarrer l&apos;essai gratuit
+                Demarrer avec Starter
               </CheckoutButton>
               <Link className="button secondary" href="/onboarding?mode=demo">
                 Configurer un projet
@@ -70,9 +70,9 @@ export default function Home() {
               </Link>
             </div>
             <div className="hero-proof" aria-label="Indicateurs produit">
-              <span>14 jours gratuits</span>
+              <span>Export PDF inclus</span>
+              <span>Agenda + contacts</span>
               <span>Stripe + Supabase</span>
-              <span>Deployable sur Vercel</span>
             </div>
           </div>
 
@@ -166,7 +166,7 @@ export default function Home() {
               Tarifs
             </span>
             <h2>Un plan pour chaque rythme d&apos;equipe.</h2>
-            <p className="muted">Starter inclut l&apos;abonnement a 19 EUR/mois avec 14 jours d&apos;essai gratuit.</p>
+            <p className="muted">Perso, Starter, Pro ou accompagnement sur mesure selon votre projet.</p>
           </div>
           <div className="pricing-grid">
             {pricingPlans.map((plan) => (
@@ -175,8 +175,8 @@ export default function Home() {
                 <h3>{plan.name}</h3>
                 <p className="muted">{plan.tagline}</p>
                 <div className="price">
-                  <span>{plan.price} EUR</span>
-                  <small>/mois</small>
+                  <span>{plan.priceLabel}</span>
+                  {plan.priceSuffix ? <small>{plan.priceSuffix}</small> : null}
                 </div>
                 <ul>
                   {plan.features.map((feature) => (
@@ -186,9 +186,21 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <CheckoutButton plan={plan.key} variant={plan.highlight ? "accent" : "secondary"}>
-                  Choisir {plan.name}
-                </CheckoutButton>
+                {plan.key === "sur-mesure" ? (
+                  <Link
+                    className="button secondary"
+                    href={plan.calendlyUrl ?? "https://calendly.com/francofacta/rendez-vous"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {plan.ctaLabel}
+                    <ArrowUpRight size={18} />
+                  </Link>
+                ) : (
+                  <CheckoutButton plan={plan.key} variant={plan.highlight ? "accent" : "secondary"}>
+                    {plan.ctaLabel}
+                  </CheckoutButton>
+                )}
               </article>
             ))}
           </div>
@@ -204,7 +216,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <CheckoutButton plan="starter" variant="accent">
-              Essai gratuit 14 jours
+              Choisir Starter
             </CheckoutButton>
             <Link className="button secondary" href="/dashboard">
               Voir le tableau de bord
