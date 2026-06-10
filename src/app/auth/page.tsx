@@ -16,7 +16,7 @@ export default function AuthPage() {
     event.preventDefault();
 
     if (!isSupabaseConfigured()) {
-      setMessage("Mode demo: ajoutez vos variables Supabase pour activer l'authentification.");
+      setMessage("Mode démo : ajoutez vos variables Supabase pour activer l'authentification.");
       return;
     }
 
@@ -53,9 +53,9 @@ export default function AuthPage() {
       <section className="card auth-card">
         <span className="eyebrow">
           <LockKeyhole size={16} />
-          Espace associe
+          Espace associé
         </span>
-        <h1>{mode === "signin" ? "Connexion" : "Creation de compte"}</h1>
+        <h1>{mode === "signin" ? "Connexion" : "Création de compte"}</h1>
         <p className="muted">{message}</p>
         <form className="auth-form" onSubmit={submitAuth}>
           <div className="form-field">
@@ -86,7 +86,7 @@ export default function AuthPage() {
             />
           </div>
           <button className="button accent" type="submit" disabled={loading}>
-            {loading ? "Verification..." : mode === "signin" ? "Se connecter" : "Creer mon compte"}
+            {loading ? "Vérification..." : mode === "signin" ? "Se connecter" : "Créer mon compte"}
           </button>
         </form>
         <button
@@ -94,7 +94,7 @@ export default function AuthPage() {
           type="button"
           onClick={() => setMode((current) => (current === "signin" ? "signup" : "signin"))}
         >
-          {mode === "signin" ? "Pas encore de compte ? S'inscrire" : "Deja un compte ? Se connecter"}
+          {mode === "signin" ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
         </button>
       </section>
     </main>

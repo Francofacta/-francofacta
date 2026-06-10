@@ -5,7 +5,7 @@ export type PricingPlan = {
   key: PlanKey;
   name: string;
   price: number | null;
-  priceLabel: string;
+  priceLabel?: string;
   priceSuffix?: string;
   tagline: string;
   highlight?: boolean;
@@ -21,71 +21,70 @@ const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL ?? "https://calendly.co
 export const pricingPlans: PricingPlan[] = [
   {
     key: "perso",
-    name: "Perso",
+    name: "Plan 1 - Perso",
     price: 29,
-    priceLabel: "29 EUR",
-    priceSuffix: "12 mois d'acces",
-    tagline: "Pour les projets personnels: mariage, construction, travaux ou evenements.",
+    priceLabel: "29 €",
+    priceSuffix: "paiement unique - 12 mois d'accès",
+    tagline: "Pour les projets personnels : mariage, construction, événement, EVJF.",
     priceEnv: "STRIPE_PERSO_PRICE_ID",
     checkoutMode: "payment",
     ctaLabel: "Choisir Perso",
     features: [
-      "Paiement unique pour 12 mois",
-      "Suivi des depenses et justificatifs",
-      "Export PDF inclus",
-      "Agenda et contacts inclus"
+      "Dashboard financier",
+      "Suivi des dépenses",
+      "Export PDF",
+      "Justificatifs",
+      "Agenda",
+      "Contacts",
+      "1 projet",
+      "3 utilisateurs"
     ]
   },
   {
     key: "starter",
-    name: "Starter",
+    name: "Plan 2 - Starter",
     price: 19,
-    priceLabel: "19 EUR",
-    priceSuffix: "/mois",
-    tagline: "Pour lancer un projet avec une equipe reduite.",
+    priceLabel: "19 €/mois",
+    tagline: "Pour les TPE de 2 à 3 associés.",
     highlight: true,
     priceEnv: "STRIPE_STARTER_PRICE_ID",
     checkoutMode: "subscription",
     ctaLabel: "Choisir Starter",
     features: [
-      "1 projet actif",
-      "3 utilisateurs max",
-      "Toutes les fonctionnalites de base",
-      "Export PDF inclus",
-      "Agenda et contacts inclus"
+      "Tout le Perso",
+      "Abonnement mensuel sans engagement",
+      "14 jours gratuits"
     ]
   },
   {
     key: "pro",
-    name: "Pro",
+    name: "Plan 3 - Pro",
     price: 39,
-    priceLabel: "39 EUR",
-    priceSuffix: "/mois",
-    tagline: "Pour piloter tous vos projets avec une vision de marge.",
+    priceLabel: "39 €/mois",
+    tagline: "Pour le multi-projets.",
     priceEnv: "STRIPE_PRO_PRICE_ID",
     checkoutMode: "subscription",
     ctaLabel: "Choisir Pro",
     features: [
-      "Projets et utilisateurs illimites",
-      "Module rentabilite inclus",
-      "Categories personnalisees",
-      "Export PDF inclus",
-      "Agenda et contacts inclus"
+      "Tout le Starter",
+      "Projets illimités",
+      "Utilisateurs illimités",
+      "Module rentabilité",
+      "Catégories personnalisées"
     ]
   },
   {
     key: "sur-mesure",
-    name: "Sur mesure",
+    name: "Plan 4 - Sur mesure",
     price: null,
-    priceLabel: "Sur mesure",
-    tagline: "Pour cadrer un deploiement adapte a votre organisation.",
+    tagline: "Pour cadrer un déploiement adapté à votre organisation.",
     ctaLabel: "Prendre rendez-vous",
     calendlyUrl,
     features: [
-      "Accompagnement au parametrage",
-      "Workflow adapte a vos equipes",
-      "Export PDF inclus",
-      "Agenda et contacts inclus"
+      "Accompagnement au paramétrage",
+      "Workflow adapté à vos équipes",
+      "Rendez-vous de cadrage",
+      "Pas de paiement Stripe"
     ]
   }
 ];

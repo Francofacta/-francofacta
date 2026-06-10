@@ -13,11 +13,15 @@ export async function POST(request: Request) {
     const plan = body.plan ?? "starter";
     const priceId = getPriceId(plan);
     const checkoutMode = getCheckoutMode(plan);
+    const metadata = {
+      app: "francofacta",
+      plan
+    };
 
     if (!priceId) {
       return NextResponse.json(
         {
-          error: `Aucun price id Stripe configure pour le plan ${plan}.`
+          error: `Aucun price id Stripe configuré pour le plan ${plan}.`
         },
         { status: 400 }
       );
@@ -37,18 +41,13 @@ export async function POST(request: Request) {
       ...(checkoutMode === "subscription"
         ? {
             subscription_data: {
-              metadata: {
-                app: "francofacta",
-                plan
-              }
+              metadata,
+              ...(plan === "starter" ? { trial_period_days: 14 } : {})
             }
           }
         : {
             payment_intent_data: {
-              metadata: {
-                app: "francofacta",
-                plan
-              }
+              metadata
             }
           }),
       allow_promotion_codes: true,
