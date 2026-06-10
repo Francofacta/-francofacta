@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, CircleDollarSign, FileText, HandCoins, PieChart, ShieldCheck, Users } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { pricingPlans } from "@/lib/pricing";
@@ -31,6 +34,44 @@ const steps = [
 export default function Home() {
   const persoPlan = pricingPlans.find((plan) => plan.key === "perso");
   const teamPlans = pricingPlans.filter((plan) => plan.key !== "perso");
+  const [heroBadge, setHeroBadge] = useState("Pour les associés de TPE");
+
+  useEffect(() => {
+    const persoPricing = document.getElementById("pricing-perso");
+    const teamPricingCards = Array.from(document.querySelectorAll("[data-team-pricing='true']"));
+
+    if (!persoPricing && teamPricingCards.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+
+        if (!visibleEntry) {
+          return;
+        }
+
+        setHeroBadge(
+          visibleEntry.target.id === "pricing-perso" ? "Pour vos projets personnels" : "Pour les associés de TPE"
+        );
+      },
+      {
+        rootMargin: "-28% 0px -42% 0px",
+        threshold: [0.1, 0.35, 0.6]
+      }
+    );
+
+    if (persoPricing) {
+      observer.observe(persoPricing);
+    }
+
+    teamPricingCards.forEach((card) => observer.observe(card));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <main>
@@ -56,8 +97,9 @@ export default function Home() {
           <div className="hero-copy">
             <span className="eyebrow">
               <ShieldCheck size={16} />
-              Suivi financier simple pour associés de TPE
+              Qui a avancé quoi ? Qui rembourse qui ? Avec justificatifs, en temps réel.
             </span>
+            <span className="hero-audience-badge">{heroBadge}</span>
             <h1>Entre potes, époux ou associés — reprenez le contrôle.</h1>
             <p>
               FrancoFacta centralise les frais, justificatifs et avances de chaque partenaire pour garder une vision
@@ -172,7 +214,7 @@ export default function Home() {
             <p className="muted">Perso, Starter, Pro ou accompagnement sur mesure selon votre projet.</p>
           </div>
           {persoPlan ? (
-            <article className="card perso-banner">
+            <article className="card perso-banner" id="pricing-perso">
               <div>
                 <span className="pill">Pour un projet ponctuel ?</span>
                 <h3>{persoPlan.name}</h3>
@@ -191,7 +233,11 @@ export default function Home() {
           ) : null}
           <div className="pricing-grid">
             {teamPlans.map((plan) => (
-              <article className={`card price-card ${plan.highlight ? "highlight" : ""}`} key={plan.key}>
+              <article
+                className={`card price-card ${plan.highlight ? "highlight" : ""}`}
+                data-team-pricing="true"
+                key={plan.key}
+              >
                 {plan.highlight ? <span className="pill">Recommandé</span> : null}
                 <h3>{plan.name}</h3>
                 <p className="muted">{plan.tagline}</p>
