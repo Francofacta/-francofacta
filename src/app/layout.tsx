@@ -18,7 +18,15 @@ export const metadata: Metadata = {
   title: "FrancoFacta | Suivi de dépenses entre associés",
   description:
     "SaaS français pour suivre les dépenses de projet, équilibrer les avances et piloter les remboursements entre associés de TPE.",
-  metadataBase: new URL("https://francofacta.vercel.app")
+  metadataBase: new URL("https://francofacta.vercel.app"),
+  icons: {
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml"
+      }
+    ]
+  }
 };
 
 export default function RootLayout({
