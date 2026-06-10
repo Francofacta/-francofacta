@@ -44,7 +44,7 @@ const defaultProject: OnboardingState = {
   projectName: "Ouverture boutique Lyon",
   projectType: "Commerce",
   currency: "EUR",
-  tabs: ["Depenses", "Justificatifs", "Remboursements", "Budget"],
+  tabs: ["Depenses", "Justificatifs", "Remboursements", "Budget", "Agenda", "Contacts"],
   members: [
     { name: "Camille", role: "Operations", color: "#c94a1a" },
     { name: "Yanis", role: "Finance", color: "#0f0f0f" },
@@ -96,15 +96,36 @@ const initialExpenses: Expense[] = [
 
 const categories = ["Toutes", "Travaux", "Marketing", "Outils", "Achats", "Transport", "Honoraires"];
 const statuses = ["Tous", "Payee", "A rembourser", "En validation"];
+const activePlan = "pro";
+
+function getDashboardAnchor(tab: string) {
+  const normalizedTab = tab.toLowerCase();
+
+  if (normalizedTab.includes("rentabilite")) {
+    return "#rentability";
+  }
+
+  if (normalizedTab.includes("agenda")) {
+    return "#agenda";
+  }
+
+  if (normalizedTab.includes("contacts")) {
+    return "#contacts";
+  }
+
+  return "#expenses";
+}
 
 export default function DashboardPage() {
   const [project, setProject] = useState<OnboardingState>(defaultProject);
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const [revenues, setRevenues] = useState(16800);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Toutes");
   const [status, setStatus] = useState("Tous");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("Ajoutez une depense avec son justificatif.");
+  const isProPlan = activePlan === "pro";
 
   useEffect(() => {
     const stored = localStorage.getItem("francofacta:onboarding");
@@ -138,6 +159,16 @@ export default function DashboardPage() {
     [category, expenses, query, status]
   );
 
+  const sidebarTabs = useMemo(() => {
+    const tabs = [...project.tabs, "Agenda", "Contacts"];
+
+    if (isProPlan) {
+      tabs.push("Rentabilite");
+    }
+
+    return [...new Set(tabs)];
+  }, [isProPlan, project.tabs]);
+
   const memberKpis = useMemo(
     () =>
       project.members.map((member) => {
@@ -161,6 +192,12 @@ export default function DashboardPage() {
   const totalPending = expenses
     .filter((expense) => expense.status === "A rembourser")
     .reduce((sum, expense) => sum + expense.amount, 0);
+  const grossMargin = revenues - totalExpenses;
+  const marginRate = revenues > 0 ? (grossMargin / revenues) * 100 : 0;
+  const projectedEndMargin = revenues - (totalExpenses + totalPending);
+  const percentageFormatter = new Intl.NumberFormat("fr-FR", {
+    maximumFractionDigits: 1
+  });
 
   async function addExpense(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -207,16 +244,16 @@ export default function DashboardPage() {
           FrancoFacta
         </Link>
         <nav className="sidebar-nav">
-          {project.tabs.map((tab) => (
-            <a href="#expenses" key={tab}>
+          {sidebarTabs.map((tab) => (
+            <a href={getDashboardAnchor(tab)} key={tab}>
               {tab}
             </a>
           ))}
         </nav>
         <div className="sidebar-card">
           <p className="muted">Plan actif</p>
-          <strong>Starter</strong>
-          <span>14 jours d&apos;essai inclus</span>
+          <strong>Pro</strong>
+          <span>Module rentabilite actif</span>
         </div>
       </aside>
 
@@ -230,10 +267,16 @@ export default function DashboardPage() {
             <h1>{project.projectName}</h1>
             <p className="muted">Vue consolidee des depenses, avances et justificatifs entre associes.</p>
           </div>
-          <button className="button accent" type="button" onClick={() => setIsModalOpen(true)}>
-            <Plus size={18} />
-            Ajouter une depense
-          </button>
+          <div className="dashboard-actions">
+            <button className="button secondary" type="button" onClick={() => window.print()}>
+              <ReceiptText size={18} />
+              Exporter PDF
+            </button>
+            <button className="button accent" type="button" onClick={() => setIsModalOpen(true)}>
+              <Plus size={18} />
+              Ajouter une depense
+            </button>
+          </div>
         </header>
 
         <section className="metric-grid" aria-label="Indicateurs globaux">
@@ -272,6 +315,93 @@ export default function DashboardPage() {
             </article>
           ))}
         </section>
+
+        <section className="member-kpi-grid" aria-label="Modules inclus dans les plans payants">
+          <article className="card member-kpi" id="agenda">
+            <div className="member-title">
+              <span className="avatar-dot" style={{ background: "#c94a1a" }} />
+              <div>
+                <strong>Agenda projet</strong>
+                <p className="muted">Jalons, echeances et relances partagees.</p>
+              </div>
+            </div>
+            <div className="member-values">
+              <span>Inclus dans Perso, Starter, Pro et Sur mesure</span>
+            </div>
+          </article>
+          <article className="card member-kpi" id="contacts">
+            <div className="member-title">
+              <span className="avatar-dot" style={{ background: "#0f0f0f" }} />
+              <div>
+                <strong>Contacts</strong>
+                <p className="muted">Partenaires, fournisseurs et intervenants reunis.</p>
+              </div>
+            </div>
+            <div className="member-values">
+              <span>Inclus dans Perso, Starter, Pro et Sur mesure</span>
+            </div>
+          </article>
+          <article className="card member-kpi">
+            <div className="member-title">
+              <span className="avatar-dot" style={{ background: "#2563eb" }} />
+              <div>
+                <strong>Export PDF</strong>
+                <p className="muted">Synthese partageable depuis le tableau de bord.</p>
+              </div>
+            </div>
+            <div className="member-values">
+              <span>Disponible pour tous les plans payants</span>
+            </div>
+          </article>
+        </section>
+
+        {isProPlan ? (
+          <section className="card rentability-panel" id="rentability" aria-label="Module rentabilite Pro">
+            <div className="rentability-header">
+              <div>
+                <span className="eyebrow">
+                  <TrendingUp size={16} />
+                  Module Pro
+                </span>
+                <h2>Rentabilite projet</h2>
+                <p className="muted">Disponible uniquement avec le plan Pro.</p>
+              </div>
+              <label className="rentability-input" htmlFor="project-revenues">
+                <span>Revenus prevus ou encaisses</span>
+                <input
+                  className="input"
+                  id="project-revenues"
+                  min="0"
+                  step="100"
+                  type="number"
+                  value={revenues}
+                  onChange={(event) => setRevenues(Number(event.target.value))}
+                />
+              </label>
+            </div>
+            <div className="rentability-grid">
+              <article className="metric-card rentability-metric">
+                <span>Total depenses</span>
+                <strong>{formatter.format(totalExpenses)}</strong>
+              </article>
+              <article className="metric-card rentability-metric">
+                <span>Marge brute</span>
+                <strong>{formatter.format(grossMargin)}</strong>
+              </article>
+              <article className="metric-card rentability-metric">
+                <span>Marge %</span>
+                <strong>{percentageFormatter.format(marginRate)} %</strong>
+              </article>
+              <article className="metric-card rentability-metric">
+                <span>Projection fin de projet</span>
+                <strong>{formatter.format(projectedEndMargin)}</strong>
+              </article>
+            </div>
+            <p className="muted rentability-note">
+              Projection calculee avec les depenses saisies et les avances restantes a rembourser.
+            </p>
+          </section>
+        ) : null}
 
         <section className="card expenses-panel" id="expenses">
           <div className="expenses-toolbar">
