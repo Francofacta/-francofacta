@@ -4,7 +4,16 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Plus, Trash2 } from "lucide-react";
 
-const projectTypes = ["Commerce", "Restauration", "Service B2B", "Immobilier", "Événementiel", "Créatif"];
+const projectTypes = [
+  "Construction",
+  "Ouverture restaurant",
+  "Commerce",
+  "Restauration",
+  "Service B2B",
+  "Immobilier",
+  "Événementiel",
+  "Créatif"
+];
 const currencies = [
   { code: "EUR", label: "€ Euro" },
   { code: "USD", label: "$ Dollar US" },
@@ -33,19 +42,54 @@ type Member = {
   sharePercentage: number;
 };
 
+type Phase = {
+  id: string;
+  name: string;
+};
+
 const initialMembers: Member[] = [
   { id: "m1", name: "Camille", role: "Opérations", color: "#c94a1a", sharePercentage: 50 },
   { id: "m2", name: "Yanis", role: "Finance", color: "#0f0f0f", sharePercentage: 50 }
 ];
 
+const phaseSuggestionsByType: Record<string, string[]> = {
+  Construction: ["Acquisition terrain", "Permis de construire", "Gros oeuvre", "Second oeuvre", "Livraison"],
+  "Ouverture restaurant": ["Bail et travaux", "Matériel cuisine", "Licence et conformité", "Stock lancement", "Communication"],
+  Restauration: ["Bail et travaux", "Matériel cuisine", "Licence et conformité", "Stock lancement", "Communication"],
+  Événementiel: ["Lieu", "Prestataires", "Communication", "Billetterie", "Jour J"],
+  Commerce: ["Local", "Travaux", "Stock lancement", "Marketing", "Ouverture"],
+  Immobilier: ["Acquisition", "Permis", "Travaux", "Ameublement", "Mise en location"],
+  "Service B2B": ["Cadrage", "Outils", "Production", "Commercial", "Lancement"],
+  Créatif: ["Préproduction", "Production", "Postproduction", "Diffusion", "Droits"]
+};
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function buildPhases(type: string): Phase[] {
+  const suggestions = phaseSuggestionsByType[type] ?? phaseSuggestionsByType.Commerce;
+
+  return suggestions.map((name, index) => ({
+    id: slugify(name) || `phase-${index + 1}`,
+    name
+  }));
+}
+
 export default function OnboardingPage() {
   const [projectName, setProjectName] = useState("Ouverture boutique Lyon");
-  const [projectType, setProjectType] = useState(projectTypes[0]);
+  const [projectType, setProjectType] = useState("Commerce");
   const [currency, setCurrency] = useState(currencies[0].code);
   const [endDate, setEndDate] = useState("2026-12-31");
   const [totalBudget, setTotalBudget] = useState(25000);
   const [revenueGeneration, setRevenueGeneration] = useState(true);
   const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [phases, setPhases] = useState<Phase[]>(buildPhases("Commerce"));
   const [tabs, setTabs] = useState<string[]>([
     "Dépenses",
     "Justificatifs",
@@ -68,14 +112,39 @@ export default function OnboardingPage() {
       projectName.trim().length > 1 &&
       endDate &&
       totalBudget > 0 &&
+      phases.length > 0 &&
       paymentMethods.length > 0 &&
+      phases.every((phase) => phase.name.trim().length > 0) &&
       members.every((member) => member.name.trim() && member.role.trim() && member.sharePercentage >= 0) &&
       Math.abs(shareTotal - 100) < 0.01,
-    [endDate, members, paymentMethods.length, projectName, shareTotal, totalBudget]
+    [endDate, members, paymentMethods.length, phases, projectName, shareTotal, totalBudget]
   );
 
   function updateMember(id: string, key: keyof Omit<Member, "id">, value: string | number) {
     setMembers((current) => current.map((member) => (member.id === id ? { ...member, [key]: value } : member)));
+  }
+
+  function updateProjectType(nextType: string) {
+    setProjectType(nextType);
+    setPhases(buildPhases(nextType));
+  }
+
+  function updatePhase(id: string, name: string) {
+    setPhases((current) => current.map((phase) => (phase.id === id ? { ...phase, name } : phase)));
+  }
+
+  function addPhase() {
+    setPhases((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        name: ""
+      }
+    ]);
+  }
+
+  function removePhase(id: string) {
+    setPhases((current) => (current.length === 1 ? current : current.filter((phase) => phase.id !== id)));
   }
 
   function addMember() {
@@ -109,7 +178,9 @@ export default function OnboardingPage() {
     event.preventDefault();
 
     if (!isReady) {
-      setStatus("Vérifiez le projet, le budget, les moyens de paiement et les parts : elles doivent totaliser 100 %.");
+      setStatus(
+        "Vérifiez le projet, les phases, le budget, les moyens de paiement et les parts : elles doivent totaliser 100 %."
+      );
       return;
     }
 
@@ -121,6 +192,10 @@ export default function OnboardingPage() {
       totalBudget,
       revenueGeneration: isProPlan ? revenueGeneration : false,
       paymentMethods,
+      phases: phases.map((phase, index) => ({
+        id: phase.id.startsWith("phase-") ? slugify(phase.name) || `phase-${index + 1}` : phase.id,
+        name: phase.name.trim()
+      })),
       tabs,
       members: members.map(({ name, role, color, sharePercentage }) => ({ name, role, color, sharePercentage }))
     };
@@ -180,6 +255,7 @@ export default function OnboardingPage() {
             <span>{currency}</span>
             <span>{members.length} associés</span>
             <span>{shareTotal}% répartis</span>
+            <span>{phases.length} phases</span>
             <span>{paymentMethods.length} moyens de paiement</span>
           </div>
         </aside>
@@ -205,7 +281,7 @@ export default function OnboardingPage() {
                 className="select"
                 id="projectType"
                 value={projectType}
-                onChange={(event) => setProjectType(event.target.value)}
+                onChange={(event) => updateProjectType(event.target.value)}
               >
                 {projectTypes.map((type) => (
                   <option key={type}>{type}</option>
@@ -274,6 +350,41 @@ export default function OnboardingPage() {
 
           <div className="form-field">
             <div className="field-row">
+              <div>
+                <label>Phases du projet</label>
+                <p className="muted field-hint">
+                  Suggestions adaptées au type de projet, à renommer ou compléter selon votre réalité.
+                </p>
+              </div>
+              <button className="small-action" type="button" onClick={() => setPhases(buildPhases(projectType))}>
+                Recharger suggestions
+              </button>
+              <button className="small-action" type="button" onClick={addPhase}>
+                <Plus size={16} />
+                Ajouter
+              </button>
+            </div>
+            <div className="phases-editor">
+              {phases.map((phase, index) => (
+                <div className="phase-editor-row" key={phase.id}>
+                  <span>{index + 1}</span>
+                  <input
+                    className="input"
+                    value={phase.name}
+                    onChange={(event) => updatePhase(phase.id, event.target.value)}
+                    placeholder="Ex : Acquisition terrain"
+                    required
+                  />
+                  <button className="icon-action" type="button" onClick={() => removePhase(phase.id)} aria-label="Supprimer">
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-field">
+            <div className="field-row">
               <label>Membres associés</label>
               <span className={`share-total ${Math.abs(shareTotal - 100) < 0.01 ? "valid" : "invalid"}`}>
                 Total : {shareTotal} %
@@ -309,6 +420,7 @@ export default function OnboardingPage() {
                     value={member.sharePercentage}
                     onChange={(event) => updateMember(member.id, "sharePercentage", Number(event.target.value))}
                     aria-label={`Part de ${member.name || "membre"}`}
+                    placeholder="Part %"
                     required
                   />
                   <input

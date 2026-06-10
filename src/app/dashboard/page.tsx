@@ -26,11 +26,18 @@ type Member = {
   sharePercentage: number;
 };
 
+type Phase = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 type Expense = {
   id: string;
   date: string;
   title: string;
   category: string;
+  phaseId: string;
   member: string;
   amount: number;
   status: "Payée" | "À rembourser" | "En validation";
@@ -68,6 +75,7 @@ type OnboardingState = {
   totalBudget: number;
   revenueGeneration: boolean;
   paymentMethods: PaymentMethod[];
+  phases: Phase[];
 };
 
 type ReceiptItem = {
@@ -92,6 +100,12 @@ const defaultTabs = [
   "Contacts"
 ];
 
+const defaultPhases: Phase[] = [
+  { id: "acquisition-terrain", name: "Acquisition terrain", color: "#0f0f0f" },
+  { id: "permis", name: "Permis de construire", color: "#008c8c" },
+  { id: "gros-oeuvre", name: "Gros oeuvre", color: "#c94a1a" }
+];
+
 const defaultProject: OnboardingState = {
   projectName: "Ouverture boutique Lyon",
   projectType: "Commerce",
@@ -101,6 +115,7 @@ const defaultProject: OnboardingState = {
   totalBudget: 25000,
   revenueGeneration: true,
   paymentMethods,
+  phases: defaultPhases,
   members: [
     { name: "Camille", role: "Opérations", color: "#c94a1a", sharePercentage: 40 },
     { name: "Yanis", role: "Finance", color: "#0f0f0f", sharePercentage: 35 },
@@ -114,6 +129,7 @@ const initialExpenses: Expense[] = [
     date: "2026-06-03",
     title: "Acompte artisan menuisier",
     category: "Travaux",
+    phaseId: "gros-oeuvre",
     member: "Camille",
     amount: 3420,
     status: "Payée",
@@ -126,6 +142,7 @@ const initialExpenses: Expense[] = [
     date: "2026-06-05",
     title: "Enseigne façade",
     category: "Marketing",
+    phaseId: "permis",
     member: "Yanis",
     amount: 1880,
     status: "À rembourser",
@@ -138,6 +155,7 @@ const initialExpenses: Expense[] = [
     date: "2026-06-08",
     title: "Location terminal paiement",
     category: "Outils",
+    phaseId: "permis",
     member: "Sofia",
     amount: 240,
     status: "En validation",
@@ -149,6 +167,7 @@ const initialExpenses: Expense[] = [
     date: "2026-06-09",
     title: "Stock lancement",
     category: "Achats",
+    phaseId: "acquisition-terrain",
     member: "Yanis",
     amount: 5120,
     status: "Payée",
@@ -213,9 +232,9 @@ const activePlan = "pro";
 const memberBannerColors = [
   "linear-gradient(135deg, #008c8c 0%, #16b8aa 100%)",
   "linear-gradient(135deg, #5b21b6 0%, #8b5cf6 100%)",
-  "linear-gradient(135deg, #167a4a 0%, #27b36a 100%)",
   "linear-gradient(135deg, #1d4ed8 0%, #38bdf8 100%)",
-  "linear-gradient(135deg, #be185d 0%, #f472b6 100%)"
+  "linear-gradient(135deg, #be185d 0%, #f472b6 100%)",
+  "linear-gradient(135deg, #7c2d12 0%, #fb923c 100%)"
 ];
 
 function getDashboardAnchor(tab: string) {
@@ -273,12 +292,43 @@ function normalizeTabs(tabs: string[]) {
   return [...new Set([...renamedTabs, ...defaultTabs])];
 }
 
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function normalizePhases(phases?: Partial<Phase>[]) {
+  const safePhases =
+    phases
+      ?.map((phase, index) => {
+        const name = phase.name?.trim();
+
+        if (!name) {
+          return undefined;
+        }
+
+        return {
+          id: phase.id?.trim() || slugify(name) || `phase-${index + 1}`,
+          name,
+          color: phase.color || defaultPhases[index % defaultPhases.length]?.color || "#0f0f0f"
+        };
+      })
+      .filter((phase): phase is Phase => Boolean(phase)) ?? [];
+
+  return safePhases.length > 0 ? safePhases : defaultPhases;
+}
+
 function normalizeProject(project: Partial<OnboardingState>): OnboardingState {
   return {
     ...defaultProject,
     ...project,
     tabs: normalizeTabs(project.tabs ?? defaultProject.tabs),
     paymentMethods: project.paymentMethods?.length ? project.paymentMethods : defaultProject.paymentMethods,
+    phases: normalizePhases(project.phases),
     members: (project.members?.length ? project.members : defaultProject.members).map((member, index, members) => ({
       ...member,
       sharePercentage:
@@ -319,6 +369,8 @@ export default function DashboardPage() {
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptItem | null>(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("Ajoutez une dépense avec son justificatif.");
+  const [newPhaseName, setNewPhaseName] = useState("");
+  const [collapsedPhaseIds, setCollapsedPhaseIds] = useState<string[]>([]);
   const isProPlan = activePlan === "pro";
 
   useEffect(() => {
@@ -330,6 +382,16 @@ export default function DashboardPage() {
       queueMicrotask(() => {
         setProject(normalizedProject);
         setSelectedMemberName(normalizedProject.members[0]?.name ?? defaultProject.members[0].name);
+        setExpenses((current) =>
+          current.map((expense, index) =>
+            normalizedProject.phases.some((phase) => phase.id === expense.phaseId)
+              ? expense
+              : {
+                  ...expense,
+                  phaseId: normalizedProject.phases[index % normalizedProject.phases.length]?.id ?? defaultPhases[0].id
+                }
+          )
+        );
       });
     }
   }, []);
@@ -351,10 +413,16 @@ export default function DashboardPage() {
     []
   );
 
+  const phaseNameById = useMemo(
+    () => new Map(project.phases.map((phase) => [phase.id, phase.name])),
+    [project.phases]
+  );
+
   const filteredExpenses = useMemo(
     () =>
       expenses.filter((expense) => {
-        const matchesQuery = `${expense.title} ${expense.member} ${expense.category} ${expense.paymentMethod}`
+        const phaseName = phaseNameById.get(expense.phaseId) ?? "Sans phase";
+        const matchesQuery = `${expense.title} ${expense.member} ${expense.category} ${phaseName} ${expense.paymentMethod}`
           .toLowerCase()
           .includes(query.toLowerCase());
         const matchesCategory = category === "Toutes" || expense.category === category;
@@ -362,7 +430,7 @@ export default function DashboardPage() {
 
         return matchesQuery && matchesCategory && matchesStatus;
       }),
-    [category, expenses, query, status]
+    [category, expenses, phaseNameById, query, status]
   );
 
   const sidebarTabs = useMemo(() => {
@@ -395,6 +463,48 @@ export default function DashboardPage() {
   const currentMarginRate = revenueCollected > 0 ? (currentMargin / revenueCollected) * 100 : 0;
   const projectedMargin = revenueCollected + revenuePending - totalExpenses;
   const budgetRemaining = project.totalBudget - totalExpenses;
+  const commonAccountTotal = revenueCollected;
+
+  const phaseSummaries = useMemo(
+    () =>
+      project.phases.map((phase) => {
+        const phaseExpenses = expenses.filter((expense) => expense.phaseId === phase.id);
+        const total = phaseExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+        return {
+          ...phase,
+          total,
+          count: phaseExpenses.length
+        };
+      }),
+    [expenses, project.phases]
+  );
+
+  const filteredExpensesByPhase = useMemo(() => {
+    const knownPhaseIds = new Set(project.phases.map((phase) => phase.id));
+    const grouped = project.phases.map((phase) => {
+      const phaseExpenses = filteredExpenses.filter((expense) => expense.phaseId === phase.id);
+
+      return {
+        ...phase,
+        total: phaseExpenses.reduce((sum, expense) => sum + expense.amount, 0),
+        expenses: phaseExpenses
+      };
+    });
+    const unassignedExpenses = filteredExpenses.filter((expense) => !knownPhaseIds.has(expense.phaseId));
+
+    if (unassignedExpenses.length > 0) {
+      grouped.push({
+        id: "sans-phase",
+        name: "Sans phase",
+        color: "#6f6a64",
+        total: unassignedExpenses.reduce((sum, expense) => sum + expense.amount, 0),
+        expenses: unassignedExpenses
+      });
+    }
+
+    return grouped;
+  }, [filteredExpenses, project.phases]);
 
   const memberKpis = useMemo(
     () =>
@@ -478,15 +588,59 @@ export default function DashboardPage() {
     [expenses, revenues]
   );
 
+  function addPhase(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = newPhaseName.trim();
+
+    if (!name) {
+      return;
+    }
+
+    const idBase = slugify(name) || `phase-${project.phases.length + 1}`;
+    const existingIds = new Set(project.phases.map((phase) => phase.id));
+    let id = idBase;
+    let suffix = 2;
+
+    while (existingIds.has(id)) {
+      id = `${idBase}-${suffix}`;
+      suffix += 1;
+    }
+
+    const color = defaultPhases[project.phases.length % defaultPhases.length]?.color ?? "#0f0f0f";
+    setProject((current) => ({
+      ...current,
+      phases: [...current.phases, { id, name, color }]
+    }));
+    setCollapsedPhaseIds((current) => current.filter((phaseId) => phaseId !== id));
+    setNewPhaseName("");
+  }
+
+  function togglePhaseCollapsed(phaseId: string) {
+    setCollapsedPhaseIds((current) =>
+      current.includes(phaseId) ? current.filter((item) => item !== phaseId) : [...current, phaseId]
+    );
+  }
+
   function updateExpensePaymentMethod(id: string, paymentMethod: PaymentMethod) {
     setExpenses((current) => current.map((expense) => (expense.id === id ? { ...expense, paymentMethod } : expense)));
   }
 
   function exportExpensesToExcel() {
-    const headers = ["Date", "Dépense", "Catégorie", "Associé", "Montant", "Statut", "Mode de paiement", "Justificatif"];
+    const headers = [
+      "Date",
+      "Dépense",
+      "Phase",
+      "Catégorie",
+      "Associé",
+      "Montant",
+      "Statut",
+      "Mode de paiement",
+      "Justificatif"
+    ];
     const rows = expenses.map((expense) => [
       expense.date,
       expense.title,
+      phaseNameById.get(expense.phaseId) ?? "Sans phase",
       expense.category,
       expense.member,
       String(expense.amount),
@@ -536,6 +690,7 @@ export default function DashboardPage() {
       date: String(formData.get("date")),
       title: String(formData.get("title")),
       category: String(formData.get("category")),
+      phaseId: String(formData.get("phaseId")),
       member: String(formData.get("member")),
       amount: Number(formData.get("amount")),
       status: String(formData.get("status")) as Expense["status"],
@@ -657,7 +812,7 @@ export default function DashboardPage() {
             <strong>{formatter.format(totalExpenses)}</strong>
             <small>Total avancé</small>
           </article>
-          {memberKpis.map((member, index) => (
+          {memberKpis.slice(0, 2).map((member, index) => (
             <button
               className={`member-banner-card member-banner-button ${
                 selectedMemberName === member.name ? "active" : ""
@@ -673,11 +828,32 @@ export default function DashboardPage() {
               <small>Total avancé · {member.count} transactions</small>
             </button>
           ))}
+          <article className="member-banner-card common-account-card" aria-label="Compte commun">
+            <span>COMPTE COMMUN</span>
+            <strong>{formatter.format(commonAccountTotal)}</strong>
+            <small>Encaissements reçus</small>
+          </article>
           <article className="member-banner-card reimbursements-card" aria-label="Remboursements à traiter">
             <span>REMBOURSEMENTS</span>
             <strong>{formatter.format(totalPending)}</strong>
             <small>À rembourser</small>
           </article>
+          {memberKpis.slice(2).map((member, index) => (
+            <button
+              className={`member-banner-card member-banner-button ${
+                selectedMemberName === member.name ? "active" : ""
+              }`}
+              key={member.name}
+              type="button"
+              style={{ background: memberBannerColors[(index + 2) % memberBannerColors.length] }}
+              onClick={() => setSelectedMemberName(member.name)}
+              aria-pressed={selectedMemberName === member.name}
+            >
+              <span>{member.name.toUpperCase()}</span>
+              <strong>{formatter.format(member.total)}</strong>
+              <small>Total avancé · {member.count} transactions</small>
+            </button>
+          ))}
         </section>
 
         {selectedMember ? (
@@ -730,7 +906,10 @@ export default function DashboardPage() {
                       <span>{new Date(expense.date).toLocaleDateString("fr-FR")}</span>
                       <div>
                         <strong>{expense.title}</strong>
-                        <p className="muted">{expense.category} · {expense.paymentMethod}</p>
+                        <p className="muted">
+                          {phaseNameById.get(expense.phaseId) ?? "Sans phase"} · {expense.category} ·{" "}
+                          {expense.paymentMethod}
+                        </p>
                       </div>
                       <span className={`transaction-receipt ${receiptState}`}>
                         {expense.receipt ? <ReceiptText size={16} /> : <FileUp size={16} />}
@@ -778,48 +957,113 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Dépense</th>
-                  <th>Associé</th>
-                  <th>Montant</th>
-                  <th>Mode de paiement</th>
-                  <th>Statut</th>
-                  <th>Justificatif</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredExpenses.map((expense) => (
-                  <tr key={expense.id}>
-                    <td>{new Date(expense.date).toLocaleDateString("fr-FR")}</td>
-                    <td>
-                      <strong>{expense.title}</strong>
-                      <p className="muted">{expense.category}</p>
-                    </td>
-                    <td>{expense.member}</td>
-                    <td>{formatter.format(expense.amount)}</td>
-                    <td>
-                      <select
-                        className="select table-select"
-                        value={expense.paymentMethod}
-                        onChange={(event) => updateExpensePaymentMethod(expense.id, event.target.value as PaymentMethod)}
-                      >
-                        {project.paymentMethods.map((method) => (
-                          <option key={method}>{method}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${getStatusClass(expense.status)}`}>{expense.status}</span>
-                    </td>
-                    <td>{expense.receipt ? <span className="receipt-name">{expense.receipt}</span> : "À ajouter"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="phase-manager">
+            <div className="phase-total-grid" aria-label="Totaux par phase">
+              {phaseSummaries.map((phase) => (
+                <article className="phase-total-card" key={phase.id}>
+                  <span className="phase-dot" style={{ background: phase.color }} />
+                  <div>
+                    <strong>{phase.name}</strong>
+                    <span>
+                      {formatter.format(phase.total)} · {phase.count} dépense{phase.count > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <form className="phase-form" onSubmit={addPhase}>
+              <input
+                className="input"
+                value={newPhaseName}
+                onChange={(event) => setNewPhaseName(event.target.value)}
+                placeholder="Créer une phase : acquisition terrain, permis, gros oeuvre..."
+                aria-label="Nom de la nouvelle phase"
+              />
+              <button className="button secondary" type="submit">
+                <Plus size={18} />
+                Ajouter une phase
+              </button>
+            </form>
+          </div>
+
+          <div className="phase-sections">
+            {filteredExpensesByPhase.map((phase) => {
+              const isCollapsed = collapsedPhaseIds.includes(phase.id);
+
+              return (
+                <section className="phase-section" key={phase.id}>
+                  <button
+                    className="phase-header"
+                    type="button"
+                    onClick={() => togglePhaseCollapsed(phase.id)}
+                    aria-expanded={!isCollapsed}
+                  >
+                    <span className="phase-dot" style={{ background: phase.color }} />
+                    <span>{phase.name}</span>
+                    <strong>{formatter.format(phase.total)}</strong>
+                    <small>
+                      {phase.expenses.length} dépense{phase.expenses.length > 1 ? "s" : ""}
+                    </small>
+                    <span className="phase-toggle">{isCollapsed ? "Ouvrir" : "Réduire"}</span>
+                  </button>
+                  {!isCollapsed ? (
+                    phase.expenses.length > 0 ? (
+                      <div className="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Dépense</th>
+                              <th>Associé</th>
+                              <th>Montant</th>
+                              <th>Mode de paiement</th>
+                              <th>Statut</th>
+                              <th>Justificatif</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {phase.expenses.map((expense) => (
+                              <tr key={expense.id}>
+                                <td>{new Date(expense.date).toLocaleDateString("fr-FR")}</td>
+                                <td>
+                                  <strong>{expense.title}</strong>
+                                  <p className="muted">{expense.category}</p>
+                                </td>
+                                <td>{expense.member}</td>
+                                <td>{formatter.format(expense.amount)}</td>
+                                <td>
+                                  <select
+                                    className="select table-select"
+                                    value={expense.paymentMethod}
+                                    onChange={(event) =>
+                                      updateExpensePaymentMethod(expense.id, event.target.value as PaymentMethod)
+                                    }
+                                  >
+                                    {project.paymentMethods.map((method) => (
+                                      <option key={method}>{method}</option>
+                                    ))}
+                                  </select>
+                                </td>
+                                <td>
+                                  <span className={`status-badge ${getStatusClass(expense.status)}`}>
+                                    {expense.status}
+                                  </span>
+                                </td>
+                                <td>
+                                  {expense.receipt ? <span className="receipt-name">{expense.receipt}</span> : "À ajouter"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="muted phase-empty">Aucune dépense dans cette phase avec les filtres actuels.</p>
+                    )
+                  ) : null}
+                </section>
+              );
+            })}
           </div>
         </section>
 
@@ -1152,6 +1396,16 @@ export default function DashboardPage() {
                       ))}
                   </select>
                 </div>
+              </div>
+              <div className="form-field">
+                <label htmlFor="phaseId">Phase projet</label>
+                <select className="select" id="phaseId" name="phaseId">
+                  {project.phases.map((phase) => (
+                    <option key={phase.id} value={phase.id}>
+                      {phase.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="form-grid-two">
                 <div className="form-field">
