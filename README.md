@@ -12,12 +12,13 @@ avances par membre, justificatifs, remboursements et budget consolidé.
 
 ## Fonctionnalités incluses
 
-- Landing page en français avec hero, douleurs, fonctionnement en 4 étapes, tarifs Perso/Starter/Pro/Sur mesure et CTA.
+- Landing page en français avec hero, douleurs, fonctionnement en 4 étapes, bannière Perso, tarifs Starter/Pro/Sur mesure et CTA.
 - Authentification Supabase email/mot de passe.
-- Onboarding projet: nom, type, membres, rôles, couleurs, onglets et devise (€/$/£/CHF/CAD/MAD).
-- Dashboard dépenses: KPI par associé, filtres, table détaillée, modale d'ajout et upload de justificatif.
+- Onboarding projet : nom, type, membres, parts, date de fin, budget, revenus, moyens de paiement, onglets et devise (€/$/£/CHF/CAD/MAD).
+- Dashboard dépenses : KPI par associé, vue membre, modes de paiement, filtres, table détaillée, export Excel, modale d'ajout et téléversement de justificatif.
+- Onglets Justificatifs, Solde & Équilibre, Coffre-fort, Revenus Pro et Rentabilité Pro.
 - Routes API Stripe pour Checkout et webhooks d'abonnement.
-- Schéma SQL Supabase avec RLS et bucket `expense-receipts`.
+- Schéma SQL Supabase avec RLS, revenus, coffre-fort et bucket `expense-receipts`.
 
 ## Démarrage local
 

@@ -21,11 +21,11 @@ const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL ?? "https://calendly.co
 export const pricingPlans: PricingPlan[] = [
   {
     key: "perso",
-    name: "Plan 1 - Perso",
+    name: "Perso",
     price: 29,
-    priceLabel: "29 €",
-    priceSuffix: "paiement unique - 12 mois d'accès",
-    tagline: "Pour les projets personnels : mariage, construction, événement, EVJF.",
+    priceLabel: "29€",
+    priceSuffix: "paiement unique - 12 mois d'accès complet",
+    tagline: "Pour un projet ponctuel : mariage, construction, rénovation ou événement.",
     priceEnv: "STRIPE_PERSO_PRICE_ID",
     checkoutMode: "payment",
     ctaLabel: "Choisir Perso",
@@ -42,7 +42,7 @@ export const pricingPlans: PricingPlan[] = [
   },
   {
     key: "starter",
-    name: "Plan 2 - Starter",
+    name: "Starter",
     price: 19,
     priceLabel: "19 €/mois",
     tagline: "Pour les TPE de 2 à 3 associés.",
@@ -58,7 +58,7 @@ export const pricingPlans: PricingPlan[] = [
   },
   {
     key: "pro",
-    name: "Plan 3 - Pro",
+    name: "Pro",
     price: 39,
     priceLabel: "39 €/mois",
     tagline: "Pour le multi-projets.",
@@ -75,7 +75,7 @@ export const pricingPlans: PricingPlan[] = [
   },
   {
     key: "sur-mesure",
-    name: "Plan 4 - Sur mesure",
+    name: "Sur mesure",
     price: null,
     tagline: "Pour cadrer un déploiement adapté à votre organisation.",
     ctaLabel: "Prendre rendez-vous",
@@ -83,8 +83,7 @@ export const pricingPlans: PricingPlan[] = [
     features: [
       "Accompagnement au paramétrage",
       "Workflow adapté à vos équipes",
-      "Rendez-vous de cadrage",
-      "Pas de paiement Stripe"
+      "Rendez-vous de cadrage"
     ]
   }
 ];

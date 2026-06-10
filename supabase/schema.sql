@@ -6,6 +6,10 @@ create table if not exists public.projects (
   name text not null,
   type text not null,
   currency text not null default 'EUR',
+  end_date date,
+  total_budget numeric(12, 2) not null default 0,
+  revenue_generation boolean not null default false,
+  payment_methods text[] not null default array['Espèces', 'Virement', 'Chèque', 'CB'],
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -17,6 +21,7 @@ create table if not exists public.project_members (
   name text not null,
   role text not null,
   color text not null default '#c94a1a',
+  share_percentage numeric(5, 2) not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -43,8 +48,43 @@ create table if not exists public.expenses (
   amount numeric(12, 2) not null check (amount >= 0),
   currency text not null default 'EUR',
   status public.expense_status not null default 'En validation',
+  payment_method text not null default 'Virement',
   expense_date date not null default current_date,
   receipt_path text,
+  receipt_required boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+do $$
+begin
+  create type public.revenue_status as enum ('Encaissé', 'En attente', 'En retard');
+exception
+  when duplicate_object then null;
+end $$;
+
+create table if not exists public.project_revenues (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  revenue_date date not null default current_date,
+  object text not null,
+  client text not null,
+  amount numeric(12, 2) not null check (amount >= 0),
+  currency text not null default 'EUR',
+  status public.revenue_status not null default 'En attente',
+  receipt_path text,
+  receipt_required boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.project_credentials (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  service_name text not null,
+  login text not null,
+  password_secret text not null,
+  url text not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -66,7 +106,22 @@ alter table public.projects enable row level security;
 alter table public.project_members enable row level security;
 alter table public.project_tabs enable row level security;
 alter table public.expenses enable row level security;
+alter table public.project_revenues enable row level security;
+alter table public.project_credentials enable row level security;
 alter table public.subscriptions enable row level security;
+
+alter table public.projects
+  add column if not exists end_date date,
+  add column if not exists total_budget numeric(12, 2) not null default 0,
+  add column if not exists revenue_generation boolean not null default false,
+  add column if not exists payment_methods text[] not null default array['Espèces', 'Virement', 'Chèque', 'CB'];
+
+alter table public.project_members
+  add column if not exists share_percentage numeric(5, 2) not null default 0;
+
+alter table public.expenses
+  add column if not exists payment_method text not null default 'Virement',
+  add column if not exists receipt_required boolean not null default true;
 
 create policy "owners can read projects"
   on public.projects for select
@@ -154,6 +209,60 @@ create policy "expenses managed by owner"
     exists (
       select 1 from public.projects
       where projects.id = expenses.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "revenues read by owner"
+  on public.project_revenues for select
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_revenues.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "revenues managed by owner"
+  on public.project_revenues for all
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_revenues.project_id
+      and projects.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_revenues.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "credentials read by owner"
+  on public.project_credentials for select
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_credentials.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "credentials managed by owner"
+  on public.project_credentials for all
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_credentials.project_id
+      and projects.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_credentials.project_id
       and projects.owner_id = auth.uid()
     )
   );
