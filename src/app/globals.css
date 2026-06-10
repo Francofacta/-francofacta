@@ -88,6 +88,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  flex-shrink: 0;
   min-height: 46px;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -95,6 +96,7 @@ p {
   background: var(--primary);
   color: #fff;
   font-weight: 800;
+  white-space: nowrap;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
@@ -417,7 +419,7 @@ th {
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -491,6 +493,37 @@ th {
   background: rgba(255, 255, 255, 0.78);
 }
 
+.perso-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 28px;
+  background: linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(244, 217, 206, 0.82));
+}
+
+.perso-banner h3 {
+  margin: 16px 0 10px;
+  font-size: 2.2rem;
+}
+
+.perso-banner p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 1.04rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.perso-banner-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
 .price-card.highlight {
   border-color: rgba(201, 74, 26, 0.46);
   background: #fff8f3;
@@ -501,6 +534,7 @@ th {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .price span {
@@ -739,6 +773,26 @@ th {
   align-items: center;
 }
 
+.member-editor-wide {
+  grid-template-columns: 1fr 1fr 110px 50px 42px;
+}
+
+.share-total {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(15, 15, 15, 0.06);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.share-total.valid {
+  color: var(--success);
+}
+
+.share-total.invalid {
+  color: var(--accent-dark);
+}
+
 .color-input {
   width: 50px;
   height: 48px;
@@ -904,6 +958,18 @@ th {
   background: rgba(255, 255, 255, 0.8);
 }
 
+.member-kpi-button {
+  width: 100%;
+  border: 1px solid var(--line);
+  color: inherit;
+  text-align: left;
+}
+
+.member-kpi-button.active {
+  border-color: rgba(201, 74, 26, 0.54);
+  background: #fff8f3;
+}
+
 .member-title {
   display: flex;
   align-items: center;
@@ -936,10 +1002,48 @@ th {
   padding: 24px;
 }
 
+.member-detail-panel,
+.receipts-panel,
+.balance-panel,
+.budget-panel,
+.vault-panel,
+.revenues-panel {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+
 .rentability-panel {
   display: grid;
   gap: 20px;
   padding: 24px;
+}
+
+.panel-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.panel-heading-row h2 {
+  margin: 12px 0 8px;
+  font-size: 2.4rem;
+}
+
+.summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.summary-chips span {
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(15, 15, 15, 0.06);
+  color: var(--muted);
+  font-weight: 900;
 }
 
 .rentability-header {
@@ -964,7 +1068,7 @@ th {
 
 .rentability-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -977,6 +1081,11 @@ th {
 
 .rentability-metric strong {
   font-size: clamp(1.7rem, 2.3vw, 2.3rem);
+}
+
+.rentability-metric small {
+  color: var(--accent-dark);
+  font-weight: 900;
 }
 
 .rentability-note {
@@ -999,7 +1108,7 @@ th {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(210px, 1fr) 160px 160px;
+  grid-template-columns: minmax(210px, 1fr) 160px 160px max-content;
   gap: 10px;
 }
 
@@ -1053,9 +1162,170 @@ td p {
   color: var(--warning);
 }
 
+.status-badge.encaisse {
+  background: rgba(32, 113, 79, 0.12);
+  color: var(--success);
+}
+
+.status-badge.en-attente {
+  background: rgba(169, 103, 0, 0.12);
+  color: var(--warning);
+}
+
+.status-badge.en-retard {
+  background: rgba(201, 74, 26, 0.16);
+  color: var(--accent-dark);
+}
+
 .receipt-name {
   color: var(--accent-dark);
   font-weight: 900;
+}
+
+.table-select {
+  min-width: 136px;
+  padding-block: 9px;
+}
+
+.export-button {
+  min-height: 48px;
+}
+
+.compact-list,
+.settlement-list {
+  display: grid;
+  gap: 10px;
+}
+
+.compact-row {
+  display: grid;
+  grid-template-columns: 130px minmax(180px, 1fr) minmax(110px, auto) minmax(120px, auto);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.compact-row span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.receipt-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.receipt-tile {
+  display: grid;
+  gap: 9px;
+  min-height: 178px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: inherit;
+  text-align: left;
+}
+
+.receipt-tile span,
+.receipt-tile small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.receipt-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+}
+
+.receipt-tile.uploaded .receipt-icon {
+  background: var(--success);
+}
+
+.receipt-tile.missing .receipt-icon {
+  background: #b7afa5;
+}
+
+.receipt-tile.required .receipt-icon {
+  background: var(--accent);
+}
+
+.receipt-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 16px;
+  background: #fff;
+}
+
+.receipt-preview p {
+  margin: 4px 0 0;
+}
+
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.balance-card {
+  display: grid;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.balance-card span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.positive-balance {
+  color: var(--success) !important;
+}
+
+.negative-balance {
+  color: var(--accent-dark) !important;
+}
+
+.inline-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) max-content;
+  gap: 10px;
+  align-items: center;
+}
+
+.revenue-form {
+  grid-template-columns: 150px 1fr 1fr 150px 160px 1fr max-content max-content;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.modal-checkbox {
+  align-self: end;
+  min-height: 48px;
 }
 
 .modal-backdrop {
@@ -1141,6 +1411,14 @@ td p {
     transform: none;
   }
 
+  .perso-banner,
+  .perso-banner-action,
+  .panel-heading-row,
+  .receipt-preview {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .mini-kpis {
     grid-template-columns: 1fr;
   }
@@ -1206,8 +1484,17 @@ td p {
   .metric-grid,
   .member-kpi-grid,
   .filters,
-  .rentability-grid {
+  .rentability-grid,
+  .receipt-gallery,
+  .balance-grid,
+  .inline-form,
+  .revenue-form,
+  .compact-row {
     grid-template-columns: 1fr;
+  }
+
+  .summary-chips {
+    justify-content: stretch;
   }
 
   .dashboard-actions {

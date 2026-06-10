@@ -29,6 +29,9 @@ const steps = [
 ];
 
 export default function Home() {
+  const persoPlan = pricingPlans.find((plan) => plan.key === "perso");
+  const teamPlans = pricingPlans.filter((plan) => plan.key !== "perso");
+
   return (
     <main>
       <header className="site-header">
@@ -99,7 +102,7 @@ export default function Home() {
               </div>
               <div className="member-row">
                 <span className="avatar-dot" style={{ background: "#c94a1a" }} />
-                <span>Camille - operations</span>
+                <span>Camille - opérations</span>
                 <strong>4 200 EUR</strong>
               </div>
               <div className="member-row">
@@ -168,8 +171,26 @@ export default function Home() {
             <h2>Un plan pour chaque rythme d&apos;équipe.</h2>
             <p className="muted">Perso, Starter, Pro ou accompagnement sur mesure selon votre projet.</p>
           </div>
+          {persoPlan ? (
+            <article className="card perso-banner">
+              <div>
+                <span className="pill">Pour un projet ponctuel ?</span>
+                <h3>{persoPlan.name}</h3>
+                <p>Mariage, construction, rénovation, événement — accès complet 12 mois.</p>
+              </div>
+              <div className="perso-banner-action">
+                <div className="price">
+                  <span>{persoPlan.priceLabel}</span>
+                  <small>paiement unique</small>
+                </div>
+                <CheckoutButton plan="perso" variant="accent">
+                  {persoPlan.ctaLabel}
+                </CheckoutButton>
+              </div>
+            </article>
+          ) : null}
           <div className="pricing-grid">
-            {pricingPlans.map((plan) => (
+            {teamPlans.map((plan) => (
               <article className={`card price-card ${plan.highlight ? "highlight" : ""}`} key={plan.key}>
                 {plan.highlight ? <span className="pill">Recommandé</span> : null}
                 <h3>{plan.name}</h3>
