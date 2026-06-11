@@ -5,6 +5,8 @@ import {
   getCurrentUserPaymentAccess
 } from "@/lib/payment-access";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const access = await getCurrentUserPaymentAccess();
   await auditExistingDashboardAccessWithoutPayment("dashboard_guard");

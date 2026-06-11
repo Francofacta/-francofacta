@@ -7,7 +7,7 @@ avances par membre, justificatifs, remboursements et budget consolidé.
 
 - Next.js App Router
 - Supabase Auth, Postgres et Storage
-- Stripe Checkout + abonnements mensuels avec 14 jours d'essai
+- Stripe Checkout + abonnements mensuels
 - Déploiement Vercel
 
 ## Fonctionnalités incluses
@@ -53,7 +53,7 @@ alors conservées dans `localStorage`.
 3. Ajoutez `STRIPE_SECRET_KEY`.
 4. Créez un webhook vers `/api/stripe/webhook` et ajoutez `STRIPE_WEBHOOK_SECRET`.
 
-La route Checkout applique `trial_period_days: 14` à l'abonnement Starter.
+Les routes protégées vérifient le plan actif dans Supabase avant onboarding et dashboard.
 
 ## Déploiement Vercel
 

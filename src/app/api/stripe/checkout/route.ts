@@ -81,8 +81,7 @@ async function createCheckoutUrl(request: Request, plan: CheckoutPlanKey, nextPa
     ...(checkoutMode === "subscription"
       ? {
           subscription_data: {
-            metadata,
-            ...(plan === "starter" ? { trial_period_days: 14 } : {})
+            metadata
           }
         }
       : {

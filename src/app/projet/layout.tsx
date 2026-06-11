@@ -5,6 +5,8 @@ import {
   getCurrentUserPaymentAccess
 } from "@/lib/payment-access";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProjectRoutesLayout({ children }: { children: React.ReactNode }) {
   const access = await getCurrentUserPaymentAccess();
   await auditExistingDashboardAccessWithoutPayment("project_route_guard");

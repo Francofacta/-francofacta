@@ -53,7 +53,7 @@ export const pricingPlans: PricingPlan[] = [
     features: [
       "Tout le Perso",
       "Abonnement mensuel sans engagement",
-      "14 jours gratuits"
+      "Paiement requis avant l'onboarding"
     ]
   },
   {
