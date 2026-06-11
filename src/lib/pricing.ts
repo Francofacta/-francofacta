@@ -53,7 +53,7 @@ export const pricingPlans: PricingPlan[] = [
     features: [
       "Tout le Perso",
       "Abonnement mensuel sans engagement",
-      "14 jours gratuits"
+      "Paiement requis avant l'onboarding"
     ]
   },
   {
@@ -95,6 +95,20 @@ export function getPriceId(plan: CheckoutPlanKey) {
   }
 
   return process.env[planConfig.priceEnv];
+}
+
+export function isCheckoutPlanKey(value: string | null | undefined): value is CheckoutPlanKey {
+  return value === "perso" || value === "starter" || value === "pro";
+}
+
+export function getPlanKeyForPriceId(priceId: string | null | undefined): CheckoutPlanKey | undefined {
+  if (!priceId) {
+    return undefined;
+  }
+
+  return pricingPlans.find((item) => item.priceEnv && process.env[item.priceEnv] === priceId)?.key as
+    | CheckoutPlanKey
+    | undefined;
 }
 
 export function getCheckoutMode(plan: CheckoutPlanKey) {

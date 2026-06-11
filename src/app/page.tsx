@@ -129,8 +129,8 @@ export default function Home() {
                 Voir le dashboard
                 <ArrowUpRight size={18} />
               </Link>
-              <Link className="button secondary" href="/onboarding?mode=demo">
-                Configurer un projet
+              <Link className="button secondary" href="#tarifs">
+                Choisir un plan
                 <ArrowUpRight size={18} />
               </Link>
             </div>
