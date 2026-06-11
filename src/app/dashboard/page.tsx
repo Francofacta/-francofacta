@@ -423,7 +423,9 @@ export default function DashboardPage() {
     const storedTasks = localStorage.getItem(storageKey);
 
     if (storedTasks) {
-      setTasks(JSON.parse(storedTasks) as TodoTask[]);
+      queueMicrotask(() => {
+        setTasks(JSON.parse(storedTasks) as TodoTask[]);
+      });
     }
 
     if (!project.projectId || !isSupabaseConfigured()) {
@@ -927,7 +929,7 @@ export default function DashboardPage() {
             <h2>Aucune dépense réelle pour le moment</h2>
             <p className="muted">
               Les lignes grisées ci-dessous sont des exemples pour vous montrer le rendu du journal. Vos KPI restent à 0€
-              jusqu'à la première saisie.
+              jusqu&apos;à la première saisie.
             </p>
             <button className="button accent" type="button" onClick={() => setIsExpenseModalOpen(true)}>
               <Plus size={18} />

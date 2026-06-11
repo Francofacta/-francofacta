@@ -344,7 +344,7 @@ export default function OnboardingPage() {
 
           {step === 2 ? (
             <div className="conversation-step">
-              <h2>Comment s'appelle le projet ?</h2>
+              <h2>Comment s&apos;appelle le projet ?</h2>
               <input
                 className="input"
                 value={projectName}

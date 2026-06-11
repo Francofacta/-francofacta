@@ -44,15 +44,17 @@ export default function PhaseDetailPage() {
     const phases = parsed.phases?.length ? parsed.phases : fallbackProject.phases;
     const members = parsed.members?.length ? parsed.members : fallbackProject.members;
 
-    setProject({
-      projectName: parsed.projectName ?? fallbackProject.projectName,
-      projectType: parsed.projectType ?? fallbackProject.projectType,
-      currency: parsed.currency ?? fallbackProject.currency,
-      projectId: parsed.projectId ?? "demo",
-      members,
-      phases
+    queueMicrotask(() => {
+      setProject({
+        projectName: parsed.projectName ?? fallbackProject.projectName,
+        projectType: parsed.projectType ?? fallbackProject.projectType,
+        currency: parsed.currency ?? fallbackProject.currency,
+        projectId: parsed.projectId ?? "demo",
+        members,
+        phases
+      });
+      setExpenses([]);
     });
-    setExpenses([]);
   }, [params.projectId]);
 
   const phase = useMemo(

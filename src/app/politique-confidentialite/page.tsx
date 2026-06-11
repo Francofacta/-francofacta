@@ -12,7 +12,7 @@ export default function PolitiqueConfidentialitePage() {
         <h1>Politique de confidentialité</h1>
         <div className="legal-content">
           <h2>Données collectées</h2>
-          <p>FrancoFacta collecte les emails, noms et dépenses liées aux projets créés dans l'application.</p>
+          <p>FrancoFacta collecte les emails, noms et dépenses liées aux projets créés dans l&apos;application.</p>
 
           <h2>Stockage et paiement</h2>
           <p>Les données projet sont stockées dans Supabase. Les paiements sont traités par Stripe.</p>
@@ -22,7 +22,7 @@ export default function PolitiqueConfidentialitePage() {
 
           <h2>Droits RGPD</h2>
           <p>
-            Vous pouvez demander l'accès, la suppression ou la portabilité de vos données en écrivant à
+            Vous pouvez demander l&apos;accès, la suppression ou la portabilité de vos données en écrivant à
             francofacta@outlook.fr.
           </p>
         </div>

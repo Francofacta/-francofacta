@@ -27,7 +27,7 @@ export default function CgvPage() {
 
           <h2>Droit de rétractation et remboursement</h2>
           <p>
-            Le client dispose d'un droit de rétractation de 14 jours. Les demandes de remboursement sont étudiées via le
+            Le client dispose d&apos;un droit de rétractation de 14 jours. Les demandes de remboursement sont étudiées via le
             support FrancoFacta.
           </p>
 
