@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LockKeyhole, Mail } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -10,14 +10,6 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("Connectez-vous pour synchroniser vos projets FrancoFacta.");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const checkout = new URLSearchParams(window.location.search).get("checkout");
-
-    if (checkout === "success") {
-      setMessage("Paiement confirmé. Consultez votre email pour finaliser l'accès à votre compte, puis connectez-vous.");
-    }
-  }, []);
 
   function getRedirectTarget() {
     const next = new URLSearchParams(window.location.search).get("next");
@@ -96,7 +88,7 @@ export default function AuthPage() {
           </button>
         </form>
         <Link className="link-button" href="/#tarifs">
-          Pas encore de compte ? S'inscrire
+          Pas encore de compte ? S&apos;inscrire
         </Link>
       </section>
     </main>
