@@ -24,32 +24,118 @@ const fallbackProject: StoredProject = {
   phases: noirmoutierDemo.phases
 };
 
+const localFallbackProject: StoredProject = {
+  projectName: "Ouverture boutique Lyon",
+  projectType: "Commerce",
+  currency: "EUR",
+  projectId: "local",
+  members: [
+    { name: "Camille", role: "Opérations", color: "#c94a1a", sharePercentage: 40 },
+    { name: "Yanis", role: "Finance", color: "#0f0f0f", sharePercentage: 35 },
+    { name: "Sofia", role: "Marketing", color: "#2563eb", sharePercentage: 25 }
+  ],
+  phases: [
+    { id: "acquisition-terrain", name: "Acquisition terrain", color: "#0f0f0f" },
+    { id: "permis", name: "Permis de construire", color: "#008c8c" },
+    { id: "gros-oeuvre", name: "Gros oeuvre", color: "#c94a1a" }
+  ]
+};
+
+const localFallbackExpenses: Expense[] = [
+  {
+    id: "e1",
+    date: "2026-06-03",
+    title: "Acompte artisan menuisier",
+    category: "Travaux",
+    phaseId: "gros-oeuvre",
+    member: "Camille",
+    amount: 3420,
+    status: "Payée",
+    paymentMethod: "Virement",
+    receipt: "facture-menuisier.pdf",
+    receiptRequired: true
+  },
+  {
+    id: "e2",
+    date: "2026-06-05",
+    title: "Enseigne façade",
+    category: "Marketing",
+    phaseId: "permis",
+    member: "Yanis",
+    amount: 1880,
+    status: "À rembourser",
+    paymentMethod: "CB",
+    receipt: "devis-enseigne.pdf",
+    receiptRequired: true
+  },
+  {
+    id: "e3",
+    date: "2026-06-08",
+    title: "Location terminal paiement",
+    category: "Outils",
+    phaseId: "permis",
+    member: "Sofia",
+    amount: 240,
+    status: "En validation",
+    paymentMethod: "CB",
+    receiptRequired: true
+  },
+  {
+    id: "e4",
+    date: "2026-06-09",
+    title: "Stock lancement",
+    category: "Achats",
+    phaseId: "acquisition-terrain",
+    member: "Yanis",
+    amount: 5120,
+    status: "Payée",
+    paymentMethod: "Chèque",
+    receipt: "stock-lancement.csv",
+    receiptRequired: false
+  }
+];
+
 function formatCurrency(value: number, currency: string) {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(value);
 }
 
 export default function PhaseDetailPage() {
   const params = useParams<{ projectId: string; phaseId: string }>();
-  const [project, setProject] = useState<StoredProject>(fallbackProject);
-  const [expenses, setExpenses] = useState<Expense[]>(noirmoutierDemo.expenses);
+  const isDemoProject = params.projectId === noirmoutierDemo.id;
+  const [project, setProject] = useState<StoredProject>(() => (isDemoProject ? fallbackProject : localFallbackProject));
+  const [expenses, setExpenses] = useState<Expense[]>(() =>
+    isDemoProject ? noirmoutierDemo.expenses : localFallbackExpenses
+  );
 
   useEffect(() => {
+    if (params.projectId === noirmoutierDemo.id) {
+      queueMicrotask(() => {
+        setProject(fallbackProject);
+        setExpenses(noirmoutierDemo.expenses);
+      });
+      return;
+    }
+
     const stored = localStorage.getItem("francofacta:onboarding");
 
-    if (!stored || params.projectId === noirmoutierDemo.id) {
+    if (!stored) {
+      queueMicrotask(() => {
+        setProject(localFallbackProject);
+        setExpenses(localFallbackExpenses);
+      });
       return;
     }
 
     const parsed = JSON.parse(stored) as Partial<StoredProject>;
-    const phases = parsed.phases?.length ? parsed.phases : fallbackProject.phases;
-    const members = parsed.members?.length ? parsed.members : fallbackProject.members;
+    const phases = parsed.phases?.length ? parsed.phases : localFallbackProject.phases;
+    const members = parsed.members?.length ? parsed.members : localFallbackProject.members;
 
     queueMicrotask(() => {
       setProject({
-        projectName: parsed.projectName ?? fallbackProject.projectName,
-        projectType: parsed.projectType ?? fallbackProject.projectType,
-        currency: parsed.currency ?? fallbackProject.currency,
-        projectId: parsed.projectId ?? "demo",
+        projectName: parsed.projectName ?? localFallbackProject.projectName,
+        projectType: parsed.projectType ?? localFallbackProject.projectType,
+        currency: parsed.currency ?? localFallbackProject.currency,
+        projectId: parsed.projectId ?? "local",
         members,
         phases
       });
@@ -69,11 +155,12 @@ export default function PhaseDetailPage() {
 
   const phaseTotal = phaseExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const receipts = phaseExpenses.filter((expense) => expense.receipt);
+  const backHref = isDemoProject ? "/dashboard-demo#expenses" : "/dashboard#expenses";
 
   return (
     <main className="phase-detail-page">
       <section className="container phase-detail-shell">
-        <Link href={params.projectId === noirmoutierDemo.id ? "/dashboard-demo#expenses" : "/dashboard#expenses"} className="brand">
+        <Link href={backHref} className="brand">
           <span>F</span>
           FrancoFacta
         </Link>
@@ -99,7 +186,7 @@ export default function PhaseDetailPage() {
             </div>
           </div>
 
-          <Link className="button accent phase-add-expense" href="/dashboard#expenses">
+          <Link className="button accent phase-add-expense" href={backHref}>
             <Plus size={18} />
             + Ajouter une dépense dans cette phase
           </Link>

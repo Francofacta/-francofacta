@@ -663,7 +663,8 @@ th {
 }
 
 .legal-page,
-.phase-detail-page {
+.phase-detail-page,
+.module-placeholder-page {
   min-height: 100vh;
   padding: 44px 0 80px;
 }
@@ -2004,6 +2005,32 @@ td p {
   gap: 24px;
 }
 
+.module-placeholder-shell {
+  display: grid;
+  gap: 24px;
+}
+
+.module-placeholder-card {
+  display: grid;
+  gap: 18px;
+  padding: 34px;
+}
+
+.module-placeholder-card h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 7vw, 5.6rem);
+  line-height: 0.9;
+}
+
+.module-placeholder-card p {
+  max-width: 620px;
+  line-height: 1.7;
+}
+
+.module-placeholder-card .button {
+  width: fit-content;
+}
+
 .phase-add-expense {
   width: fit-content;
 }
@@ -2018,7 +2045,7 @@ td p {
   font-size: 2rem;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .section {
     padding: 56px 0;
   }
@@ -2042,7 +2069,6 @@ td p {
     display: none;
   }
 
-  .hero-grid,
   .process-grid,
   .pain-grid,
   .pricing-grid {
@@ -2050,20 +2076,32 @@ td p {
   }
 
   .hero {
-    padding: 22px 0 30px;
+    padding: 16px 0 28px;
+  }
+
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
 
   .hero-copy {
-    gap: 14px;
+    display: contents;
   }
 
-  .hero-copy .eyebrow,
   .hero-proof {
     font-size: 0.76rem;
   }
 
+  .hero-audience-badge {
+    order: 1;
+  }
+
   .hero-copy h1 {
-    font-size: clamp(2.45rem, 13vw, 4rem);
+    order: 2;
+    font-size: clamp(2.35rem, 11vw, 3rem);
+    line-height: 0.92;
   }
 
   .hero-copy p {
@@ -2071,8 +2109,26 @@ td p {
     line-height: 1.45;
   }
 
+  .hero-card {
+    order: 3;
+  }
+
+  .hero-subtitle {
+    order: 4;
+  }
+
+  .hero-tagline {
+    order: 5;
+    margin-top: 0;
+  }
+
   .hero-actions {
+    order: 6;
     gap: 8px;
+  }
+
+  .hero-proof {
+    order: 7;
   }
 
   .hero-card,
@@ -2096,13 +2152,47 @@ td p {
     padding: 12px;
   }
 
+  .browser-bar {
+    padding: 4px 6px 10px;
+  }
+
   .mini-dashboard {
-    gap: 10px;
-    padding: 14px;
+    gap: 8px;
+    padding: 12px;
   }
 
   .mini-dashboard h3 {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
+  }
+
+  .mini-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mini-kpis div,
+  .receipt-card,
+  .member-row {
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .mini-kpis strong {
+    font-size: 1.05rem;
+  }
+
+  .member-row,
+  .receipt-card {
+    gap: 8px;
+  }
+
+  .member-row strong {
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+
+  .receipt-card p {
+    display: none;
   }
 
   .final-card {
@@ -2191,27 +2281,51 @@ td p {
   }
 
   .metric-card {
-    min-height: 92px;
-    max-height: 100px;
-    padding: 14px;
-    overflow: hidden;
+    min-height: 86px;
+    gap: 7px;
+    padding: 12px;
+    overflow: visible;
+  }
+
+  .metric-card svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .metric-card span {
+    font-size: 0.78rem;
   }
 
   .metric-card strong {
-    font-size: 1.45rem;
+    font-size: clamp(1.08rem, 5vw, 1.35rem);
+    line-height: 1;
+    overflow-wrap: anywhere;
   }
 
   .member-kpi-banner {
-    grid-auto-columns: minmax(80vw, 80vw);
+    grid-auto-columns: minmax(74vw, 74vw);
   }
 
   .member-banner-card {
-    min-height: 100px;
-    padding: 14px;
+    min-height: 88px;
+    gap: 8px;
+    border-radius: 22px;
+    padding: 12px;
+  }
+
+  .member-banner-card span {
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
   }
 
   .member-banner-card strong {
-    font-size: 1.6rem;
+    font-size: clamp(1.28rem, 7vw, 1.55rem);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .member-banner-card small {
+    font-size: 0.76rem;
   }
 
   .mobile-bottom-nav {
@@ -2231,7 +2345,8 @@ td p {
     backdrop-filter: blur(16px);
   }
 
-  .mobile-bottom-nav a {
+  .mobile-bottom-nav > a,
+  .mobile-more-menu summary {
     display: grid;
     place-items: center;
     min-height: 44px;
@@ -2242,9 +2357,74 @@ td p {
     text-align: center;
   }
 
+  .mobile-more-menu {
+    position: relative;
+  }
+
+  .mobile-more-menu summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .mobile-more-menu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-more-menu div {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    display: grid;
+    gap: 6px;
+    min-width: 150px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 8px;
+    background: rgba(255, 250, 244, 0.98);
+    box-shadow: 0 16px 44px rgba(15, 15, 15, 0.16);
+  }
+
+  .mobile-more-menu:not([open]) div {
+    display: none;
+  }
+
+  .mobile-more-menu div a {
+    display: grid;
+    place-items: center;
+    min-height: 40px;
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .mobile-more-menu div a:hover {
+    background: rgba(15, 15, 15, 0.06);
+  }
+
   .mobile-bottom-nav a:first-child {
     background: var(--primary);
     color: #fff;
+  }
+
+  .receipts-panel .panel-heading-row {
+    display: contents;
+  }
+
+  .receipts-panel .panel-heading-row > div:first-child {
+    order: 1;
+  }
+
+  .receipts-panel .receipt-gallery {
+    order: 2;
+  }
+
+  .receipts-panel .dashboard-actions {
+    order: 3;
+  }
+
+  .receipts-panel .receipt-preview {
+    order: 4;
   }
 
   .small-action,
