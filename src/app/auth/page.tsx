@@ -12,6 +12,16 @@ export default function AuthPage() {
   const [message, setMessage] = useState("Connectez-vous pour synchroniser vos projets FrancoFacta.");
   const [loading, setLoading] = useState(false);
 
+  function getRedirectTarget() {
+    const next = new URLSearchParams(window.location.search).get("next");
+
+    if (!next || !next.startsWith("/") || next.startsWith("//")) {
+      return "/onboarding";
+    }
+
+    return next;
+  }
+
   async function submitAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -29,7 +39,7 @@ export default function AuthPage() {
             email,
             password,
             options: {
-              emailRedirectTo: `${window.location.origin}/onboarding`
+              emailRedirectTo: `${window.location.origin}${getRedirectTarget()}`
             }
           });
 
@@ -41,7 +51,7 @@ export default function AuthPage() {
       return;
     }
 
-    window.location.href = "/onboarding";
+    window.location.href = getRedirectTarget();
   }
 
   return (

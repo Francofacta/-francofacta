@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUserPaymentAccess } from "@/lib/payment-access";
 import { createServiceClient } from "@/lib/supabase/server";
 
 type MemberInput = {
@@ -27,6 +28,16 @@ type OnboardingPayload = {
 };
 
 export async function POST(request: Request) {
+  const access = await getCurrentUserPaymentAccess();
+
+  if (!access.user) {
+    return NextResponse.json({ error: "Connexion requise avant de créer un projet." }, { status: 401 });
+  }
+
+  if (!access.hasActivePaidPlan) {
+    return NextResponse.json({ error: "Paiement requis avant de démarrer l'onboarding." }, { status: 402 });
+  }
+
   const payload = (await request.json()) as OnboardingPayload;
   const phases = payload.phases ?? [];
 
@@ -51,14 +62,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Chaque phase doit avoir un nom." }, { status: 400 });
   }
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ saved: false, mode: "demo" });
-  }
-
   const supabase = createServiceClient();
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .insert({
+      owner_id: access.user.id,
       name: payload.projectName,
       type: payload.projectType,
       currency: payload.currency,
