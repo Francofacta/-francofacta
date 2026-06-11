@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthRedirectPath, getSafeNextPath } from "@/lib/payment-access";
+import { getSafeNextPath } from "@/lib/payment-access";
 import { getCheckoutMode, getPriceId, isCheckoutPlanKey, type CheckoutPlanKey } from "@/lib/pricing";
 import { createUserServerClient, isSupabaseAuthConfigured } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
@@ -39,24 +39,38 @@ function getSuccessUrl(origin: string, nextPath: string) {
   return url.toString();
 }
 
-async function createCheckoutUrl(request: Request, plan: CheckoutPlanKey, nextPath: string) {
+function getAuthSuccessUrl(origin: string, nextPath: string) {
+  const url = new URL("/auth", origin);
+  url.searchParams.set("checkout", "success");
+  url.searchParams.set("next", getSafeNextPath(nextPath));
+  url.searchParams.set("session_id", "{CHECKOUT_SESSION_ID}");
+
+  return url.toString();
+}
+
+function normalizeEmail(value: string | undefined) {
+  const email = value?.trim().toLowerCase();
+
+  return email && email.includes("@") ? email : undefined;
+}
+
+async function createCheckoutUrl(request: Request, plan: CheckoutPlanKey, nextPath: string, requestedEmail?: string) {
   const user = await getAuthenticatedUser();
-
-  if (!user?.email) {
-    return {
-      status: 401,
-      authUrl: getAuthRedirectPath(`/api/stripe/checkout?plan=${plan}&next=${encodeURIComponent(nextPath)}`)
-    };
-  }
-
   const priceId = getPriceId(plan);
   const checkoutMode = getCheckoutMode(plan);
-  const metadata = {
+  const email = user?.email ?? normalizeEmail(requestedEmail);
+  const metadata: Record<string, string> = {
     app: "francofacta",
-    plan,
-    user_id: user.id,
-    user_email: user.email
+    plan
   };
+
+  if (user?.id) {
+    metadata.user_id = user.id;
+  }
+
+  if (email) {
+    metadata.user_email = email;
+  }
 
   if (!priceId) {
     return {
@@ -69,9 +83,9 @@ async function createCheckoutUrl(request: Request, plan: CheckoutPlanKey, nextPa
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
     mode: checkoutMode,
-    client_reference_id: user.id,
-    customer_email: user.email,
     metadata,
+    ...(user?.id ? { client_reference_id: user.id } : {}),
+    ...(email ? { customer_email: email } : {}),
     line_items: [
       {
         price: priceId,
@@ -89,8 +103,9 @@ async function createCheckoutUrl(request: Request, plan: CheckoutPlanKey, nextPa
             metadata
           }
         }),
+    ...(checkoutMode === "payment" ? { customer_creation: "always" as const } : {}),
     allow_promotion_codes: true,
-    success_url: getSuccessUrl(origin, nextPath),
+    success_url: user?.id ? getSuccessUrl(origin, nextPath) : getAuthSuccessUrl(origin, nextPath),
     cancel_url: buildUrl(origin, "/?checkout=cancelled#tarifs")
   });
 
@@ -103,11 +118,7 @@ export async function GET(request: Request) {
     const rawPlan = url.searchParams.get("plan");
     const plan = isCheckoutPlanKey(rawPlan) ? rawPlan : "starter";
     const nextPath = getSafeNextPath(url.searchParams.get("next"));
-    const checkout = await createCheckoutUrl(request, plan, nextPath);
-
-    if (checkout.authUrl) {
-      return NextResponse.redirect(buildUrl(getOrigin(request), checkout.authUrl), { status: 303 });
-    }
+    const checkout = await createCheckoutUrl(request, plan, nextPath, url.searchParams.get("email") ?? undefined);
 
     if (!checkout.url) {
       return NextResponse.json(
@@ -130,17 +141,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CheckoutBody;
     const plan = isCheckoutPlanKey(body.plan) ? body.plan : "starter";
-    const checkout = await createCheckoutUrl(request, plan, getSafeNextPath(body.next));
-
-    if (checkout.authUrl) {
-      return NextResponse.json(
-        {
-          error: "Connectez-vous avant de démarrer le paiement.",
-          url: checkout.authUrl
-        },
-        { status: 401 }
-      );
-    }
+    const checkout = await createCheckoutUrl(request, plan, getSafeNextPath(body.next), body.email);
 
     if (!checkout.url) {
       return NextResponse.json(

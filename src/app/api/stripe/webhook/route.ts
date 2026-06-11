@@ -35,6 +35,129 @@ function addMonths(date: Date, months: number) {
   return nextDate;
 }
 
+type SupabaseServiceClient = ReturnType<typeof createServiceClient>;
+
+type SubscriptionSyncContext = {
+  userId?: string | null;
+  email?: string | null;
+  stripeCheckoutSessionId?: string | null;
+};
+
+function normalizeEmail(value: string | null | undefined) {
+  const email = value?.trim().toLowerCase();
+
+  return email && email.includes("@") ? email : null;
+}
+
+function getCheckoutSessionEmail(session: Stripe.Checkout.Session) {
+  return normalizeEmail(session.customer_details?.email ?? session.customer_email ?? session.metadata?.user_email);
+}
+
+function getInviteRedirectTo() {
+  const origin = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!origin) {
+    return undefined;
+  }
+
+  return new URL("/auth?next=/onboarding", origin).toString();
+}
+
+async function findProfileUserIdByEmail(supabase: SupabaseServiceClient, email: string) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle<{ id: string }>();
+
+  return profile?.id ?? null;
+}
+
+async function findAuthUserIdByEmail(supabase: SupabaseServiceClient, email: string) {
+  const perPage = 1000;
+
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      console.warn("[stripe-webhook] Unable to inspect Supabase users by email", {
+        email,
+        error: error.message
+      });
+      return null;
+    }
+
+    const user = data.users.find((item) => normalizeEmail(item.email) === email);
+
+    if (user) {
+      return user.id;
+    }
+
+    if (data.users.length < perPage) {
+      return null;
+    }
+  }
+
+  console.warn("[stripe-webhook] Supabase user lookup reached page limit", { email });
+
+  return null;
+}
+
+async function findExistingUserIdForEmail(supabase: SupabaseServiceClient, email: string) {
+  return (await findProfileUserIdByEmail(supabase, email)) ?? (await findAuthUserIdByEmail(supabase, email));
+}
+
+async function ensurePaidCheckoutUser(session: Stripe.Checkout.Session, plan: CheckoutPlanKey) {
+  const existingUserId = session.metadata?.user_id ?? session.client_reference_id;
+
+  if (existingUserId) {
+    return existingUserId;
+  }
+
+  if (session.payment_status !== "paid") {
+    return null;
+  }
+
+  const email = getCheckoutSessionEmail(session);
+
+  if (!email) {
+    console.warn("[stripe-webhook] Paid checkout session missing customer email", {
+      stripe_checkout_session_id: session.id,
+      stripe_customer_id: getStripeId(session.customer),
+      plan
+    });
+    return null;
+  }
+
+  const supabase = createServiceClient();
+  const existingUserByEmail = await findExistingUserIdForEmail(supabase, email);
+
+  if (existingUserByEmail) {
+    return existingUserByEmail;
+  }
+
+  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: getInviteRedirectTo(),
+    data: {
+      plan,
+      stripe_customer_id: getStripeId(session.customer),
+      stripe_checkout_session_id: session.id
+    }
+  });
+
+  if (error) {
+    console.warn("[stripe-webhook] Unable to create paid Supabase user invitation", {
+      email,
+      stripe_checkout_session_id: session.id,
+      error: error.message
+    });
+
+    return findExistingUserIdForEmail(supabase, email);
+  }
+
+  return data.user?.id ?? null;
+}
+
 async function findUserIdForStripeCustomer(stripeCustomerId: string | null, stripeSubscriptionId?: string | null) {
   if (!stripeCustomerId && !stripeSubscriptionId) {
     return null;
@@ -110,17 +233,21 @@ async function upsertProfilePaymentStatus({
 async function syncCheckoutSession(session: Stripe.Checkout.Session) {
   const stripe = getStripe();
   const supabase = createServiceClient();
-  const userId = session.metadata?.user_id ?? session.client_reference_id;
   const plan = getPlanFromMetadataOrPrice(session.metadata?.plan, session.amount_total ? undefined : null);
   const stripeCustomerId = getStripeId(session.customer);
-  const email = session.customer_details?.email ?? session.customer_email ?? session.metadata?.user_email ?? null;
+  const email = getCheckoutSessionEmail(session);
+  const userId = await ensurePaidCheckoutUser(session, plan);
 
   if (session.mode === "subscription" && session.subscription) {
     const subscriptionId = getStripeId(session.subscription);
 
     if (subscriptionId) {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      await syncSubscription(subscription);
+      await syncSubscription(subscription, {
+        userId,
+        email,
+        stripeCheckoutSessionId: session.id
+      });
     }
 
     return;
@@ -163,7 +290,7 @@ async function syncCheckoutSession(session: Stripe.Checkout.Session) {
   });
 }
 
-async function syncSubscription(subscription: Stripe.Subscription) {
+async function syncSubscription(subscription: Stripe.Subscription, context?: SubscriptionSyncContext) {
   const supabase = createServiceClient();
   const stripeCustomerId = getStripeId(subscription.customer);
   const stripeSubscriptionId = subscription.id;
@@ -172,26 +299,45 @@ async function syncSubscription(subscription: Stripe.Subscription) {
   const currentPeriodEnd = getSubscriptionPeriodEnd(subscription);
   const currentPeriodEndIso = currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null;
   const trialEndIso = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+  const email = normalizeEmail(subscription.metadata?.user_email ?? context?.email);
   const userId =
-    subscription.metadata?.user_id ?? (await findUserIdForStripeCustomer(stripeCustomerId, stripeSubscriptionId));
+    subscription.metadata?.user_id ??
+    context?.userId ??
+    (await findUserIdForStripeCustomer(stripeCustomerId, stripeSubscriptionId));
   const updatedAt = new Date().toISOString();
 
-  await supabase.from("subscriptions").upsert(
-    {
-      user_id: userId,
-      stripe_customer_id: stripeCustomerId,
-      stripe_subscription_id: stripeSubscriptionId,
-      status: subscription.status,
-      plan,
-      current_period_end: currentPeriodEndIso,
-      trial_end: trialEndIso,
-      price_id: priceId,
-      updated_at: updatedAt
-    },
-    {
-      onConflict: "stripe_subscription_id"
-    }
-  );
+  const subscriptionRow: {
+    user_id: string | null;
+    stripe_customer_id: string | null;
+    stripe_subscription_id: string;
+    stripe_checkout_session_id?: string;
+    status: string;
+    plan: CheckoutPlanKey;
+    current_period_end: string | null;
+    trial_end: string | null;
+    price_id: string | undefined;
+    email: string | null;
+    updated_at: string;
+  } = {
+    user_id: userId,
+    stripe_customer_id: stripeCustomerId,
+    stripe_subscription_id: stripeSubscriptionId,
+    status: subscription.status,
+    plan,
+    current_period_end: currentPeriodEndIso,
+    trial_end: trialEndIso,
+    price_id: priceId,
+    email,
+    updated_at: updatedAt
+  };
+
+  if (context?.stripeCheckoutSessionId) {
+    subscriptionRow.stripe_checkout_session_id = context.stripeCheckoutSessionId;
+  }
+
+  await supabase.from("subscriptions").upsert(subscriptionRow, {
+    onConflict: "stripe_subscription_id"
+  });
 
   if (!userId) {
     console.warn("[stripe-webhook] Subscription event missing Supabase user_id metadata", {
@@ -205,6 +351,7 @@ async function syncSubscription(subscription: Stripe.Subscription) {
 
   await upsertProfilePaymentStatus({
     userId,
+    email,
     plan,
     status: subscription.status,
     stripeCustomerId,

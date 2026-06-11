@@ -8,7 +8,6 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [message, setMessage] = useState("Connectez-vous pour synchroniser vos projets FrancoFacta.");
   const [loading, setLoading] = useState(false);
 
@@ -32,18 +31,7 @@ export default function AuthPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const authCall =
-      mode === "signin"
-        ? supabase.auth.signInWithPassword({ email, password })
-        : supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: `${window.location.origin}${getRedirectTarget()}`
-            }
-          });
-
-    const { error } = await authCall;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (error) {
@@ -65,7 +53,7 @@ export default function AuthPage() {
           <LockKeyhole size={16} />
           Espace associé
         </span>
-        <h1>{mode === "signin" ? "Connexion" : "Création de compte"}</h1>
+        <h1>Connexion</h1>
         <p className="muted">{message}</p>
         <form className="auth-form" onSubmit={submitAuth}>
           <div className="form-field">
@@ -96,16 +84,12 @@ export default function AuthPage() {
             />
           </div>
           <button className="button accent" type="submit" disabled={loading}>
-            {loading ? "Vérification..." : mode === "signin" ? "Se connecter" : "Créer mon compte"}
+            {loading ? "Vérification..." : "Se connecter"}
           </button>
         </form>
-        <button
-          className="link-button"
-          type="button"
-          onClick={() => setMode((current) => (current === "signin" ? "signup" : "signin"))}
-        >
-          {mode === "signin" ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
-        </button>
+        <Link className="link-button" href="/#tarifs">
+          Pas encore de compte ? S&apos;inscrire
+        </Link>
       </section>
     </main>
   );
