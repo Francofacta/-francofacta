@@ -4,17 +4,21 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownUp,
+  CheckSquare,
   Download,
   FileUp,
   Filter,
+  Lock,
   Plus,
   ReceiptText,
   Search,
+  Trash2,
   TrendingUp,
   Users,
   X
 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ghostExpenses } from "@/lib/demo-project";
 
 type PaymentMethod = "Espèces" | "Virement" | "Chèque" | "CB";
 type ReceiptState = "uploaded" | "missing" | "required";
@@ -66,6 +70,7 @@ type Credential = {
 };
 
 type OnboardingState = {
+  projectId?: string;
   projectName: string;
   projectType: string;
   currency: string;
@@ -76,6 +81,14 @@ type OnboardingState = {
   revenueGeneration: boolean;
   paymentMethods: PaymentMethod[];
   phases: Phase[];
+};
+
+type PlanTier = "perso" | "starter" | "pro";
+
+type TodoTask = {
+  id: string;
+  title: string;
+  done: boolean;
 };
 
 type ReceiptItem = {
@@ -92,6 +105,7 @@ type ReceiptItem = {
 const paymentMethods: PaymentMethod[] = ["Espèces", "Virement", "Chèque", "CB"];
 const defaultTabs = [
   "Dépenses",
+  "To do",
   "Justificatifs",
   "Solde & Équilibre",
   "Budget",
@@ -228,7 +242,12 @@ const initialCredentials: Credential[] = [
 const categories = ["Toutes", "Travaux", "Marketing", "Outils", "Achats", "Transport", "Honoraires"];
 const statuses = ["Tous", "Payée", "À rembourser", "En validation"];
 const revenueStatuses: Revenue["status"][] = ["Encaissé", "En attente", "En retard"];
-const activePlan = "pro";
+function getActivePlan(): PlanTier {
+  return "starter";
+}
+
+const activePlan = getActivePlan();
+const proOnlyTabs = ["Revenus", "Rentabilité"];
 const memberBannerColors = [
   "linear-gradient(135deg, #008c8c 0%, #16b8aa 100%)",
   "linear-gradient(135deg, #5b21b6 0%, #8b5cf6 100%)",
@@ -245,6 +264,15 @@ function getDashboardAnchor(tab: string) {
 
   if (normalizedTab.includes("justificatifs")) {
     return "#receipts";
+  }
+
+  if (
+    normalizedTab.includes("to do") ||
+    normalizedTab.includes("to-do") ||
+    normalizedTab.includes("todo") ||
+    normalizedTab.includes("faire")
+  ) {
+    return "#todo";
   }
 
   if (normalizedTab.includes("solde") || normalizedTab.includes("remboursements")) {
@@ -371,6 +399,8 @@ export default function DashboardPage() {
   const [uploadStatus, setUploadStatus] = useState("Ajoutez une dépense avec son justificatif.");
   const [newPhaseName, setNewPhaseName] = useState("");
   const [collapsedPhaseIds, setCollapsedPhaseIds] = useState<string[]>([]);
+  const [tasks, setTasks] = useState<TodoTask[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
   const isProPlan = activePlan === "pro";
 
   useEffect(() => {
@@ -382,19 +412,41 @@ export default function DashboardPage() {
       queueMicrotask(() => {
         setProject(normalizedProject);
         setSelectedMemberName(normalizedProject.members[0]?.name ?? defaultProject.members[0].name);
-        setExpenses((current) =>
-          current.map((expense, index) =>
-            normalizedProject.phases.some((phase) => phase.id === expense.phaseId)
-              ? expense
-              : {
-                  ...expense,
-                  phaseId: normalizedProject.phases[index % normalizedProject.phases.length]?.id ?? defaultPhases[0].id
-                }
-          )
-        );
+        setExpenses([]);
+        setRevenues([]);
       });
     }
   }, []);
+
+  useEffect(() => {
+    const storageKey = `francofacta:tasks:${project.projectId ?? slugify(project.projectName)}`;
+    const storedTasks = localStorage.getItem(storageKey);
+
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks) as TodoTask[]);
+    }
+
+    if (!project.projectId || !isSupabaseConfigured()) {
+      return;
+    }
+
+    const supabase = createClient();
+    supabase
+      .from("project_tasks")
+      .select("id,title,done")
+      .eq("project_id", project.projectId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data?.length) {
+          setTasks(data as TodoTask[]);
+        }
+      });
+  }, [project.projectId, project.projectName]);
+
+  useEffect(() => {
+    const storageKey = `francofacta:tasks:${project.projectId ?? slugify(project.projectName)}`;
+    localStorage.setItem(storageKey, JSON.stringify(tasks));
+  }, [project.projectId, project.projectName, tasks]);
 
   const formatter = useMemo(
     () =>
@@ -435,13 +487,10 @@ export default function DashboardPage() {
 
   const sidebarTabs = useMemo(() => {
     const tabs = normalizeTabs(project.tabs);
-
-    if (isProPlan) {
-      tabs.push("Revenus", "Rentabilité");
-    }
+    tabs.push("Revenus", "Rentabilité");
 
     return [...new Set(tabs)];
-  }, [isProPlan, project.tabs]);
+  }, [project.tabs]);
 
   const totalExpenses = useMemo(() => expenses.reduce((sum, expense) => sum + expense.amount, 0), [expenses]);
   const totalPending = useMemo(
@@ -464,6 +513,7 @@ export default function DashboardPage() {
   const projectedMargin = revenueCollected + revenuePending - totalExpenses;
   const budgetRemaining = project.totalBudget - totalExpenses;
   const commonAccountTotal = revenueCollected;
+  const hasNoExpenses = expenses.length === 0;
 
   const phaseSummaries = useMemo(
     () =>
@@ -505,6 +555,9 @@ export default function DashboardPage() {
 
     return grouped;
   }, [filteredExpenses, project.phases]);
+
+  const visiblePhaseSummaries = hasNoExpenses ? phaseSummaries.slice(0, 1) : phaseSummaries;
+  const visibleExpensesByPhase = hasNoExpenses ? filteredExpensesByPhase.slice(0, 1) : filteredExpensesByPhase;
 
   const memberKpis = useMemo(
     () =>
@@ -743,6 +796,62 @@ export default function DashboardPage() {
     event.currentTarget.reset();
   }
 
+  async function addTask(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const title = newTaskTitle.trim();
+
+    if (!title) {
+      return;
+    }
+
+    const task: TodoTask = {
+      id: crypto.randomUUID(),
+      title,
+      done: false
+    };
+
+    setTasks((current) => [...current, task]);
+    setNewTaskTitle("");
+
+    if (project.projectId && isSupabaseConfigured()) {
+      const supabase = createClient();
+      await supabase.from("project_tasks").insert({
+        id: task.id,
+        project_id: project.projectId,
+        title: task.title,
+        done: task.done
+      });
+    }
+  }
+
+  async function toggleTask(taskId: string) {
+    let nextDone = false;
+    setTasks((current) =>
+      current.map((task) => {
+        if (task.id !== taskId) {
+          return task;
+        }
+
+        nextDone = !task.done;
+        return { ...task, done: nextDone };
+      })
+    );
+
+    if (project.projectId && isSupabaseConfigured()) {
+      const supabase = createClient();
+      await supabase.from("project_tasks").update({ done: nextDone }).eq("id", taskId);
+    }
+  }
+
+  async function deleteTask(taskId: string) {
+    setTasks((current) => current.filter((task) => task.id !== taskId));
+
+    if (project.projectId && isSupabaseConfigured()) {
+      const supabase = createClient();
+      await supabase.from("project_tasks").delete().eq("id", taskId);
+    }
+  }
+
   return (
     <main className="dashboard-page">
       <aside className="sidebar">
@@ -751,16 +860,40 @@ export default function DashboardPage() {
           FrancoFacta
         </Link>
         <nav className="sidebar-nav">
-          {sidebarTabs.map((tab) => (
-            <a href={getDashboardAnchor(tab)} key={tab}>
-              {tab === "Remboursements" ? "Solde & Équilibre" : tab}
-            </a>
-          ))}
+          {sidebarTabs.map((tab) => {
+            const label = tab === "Remboursements" ? "Solde & Équilibre" : tab;
+            const isLockedProTab = !isProPlan && proOnlyTabs.includes(label);
+
+            if (isLockedProTab) {
+              return (
+                <span
+                  className="sidebar-locked"
+                  key={tab}
+                  tabIndex={0}
+                  title="Disponible avec le plan Pro — passer à Pro"
+                >
+                  <span>{label}</span>
+                  <Lock size={14} />
+                  <em>Pro</em>
+                </span>
+              );
+            }
+
+            return (
+              <a href={getDashboardAnchor(tab)} key={tab}>
+                {label}
+              </a>
+            );
+          })}
         </nav>
         <div className="sidebar-card">
           <p className="muted">Plan actif</p>
-          <strong>Pro</strong>
-          <span>Modules revenus et rentabilité actifs</span>
+          <strong>{activePlan === "perso" ? "Perso" : activePlan === "starter" ? "Starter" : "Pro"}</strong>
+          <span>
+            {isProPlan
+              ? "Modules revenus et rentabilité actifs"
+              : "Revenus et rentabilité disponibles avec le plan Pro"}
+          </span>
         </div>
       </aside>
 
@@ -787,6 +920,21 @@ export default function DashboardPage() {
             </button>
           </div>
         </header>
+
+        {hasNoExpenses ? (
+          <section className="card empty-dashboard-state" aria-label="Tableau de bord vide">
+            <span>Votre projet est prêt.</span>
+            <h2>Aucune dépense réelle pour le moment</h2>
+            <p className="muted">
+              Les lignes grisées ci-dessous sont des exemples pour vous montrer le rendu du journal. Vos KPI restent à 0€
+              jusqu'à la première saisie.
+            </p>
+            <button className="button accent" type="button" onClick={() => setIsExpenseModalOpen(true)}>
+              <Plus size={18} />
+              Ajouter ma première dépense
+            </button>
+          </section>
+        ) : null}
 
         <section className="metric-grid" aria-label="Indicateurs globaux">
           <article className="card metric-card">
@@ -959,8 +1107,8 @@ export default function DashboardPage() {
 
           <div className="phase-manager">
             <div className="phase-total-grid" aria-label="Totaux par phase">
-              {phaseSummaries.map((phase) => (
-                <article className="phase-total-card" key={phase.id}>
+              {visiblePhaseSummaries.map((phase) => (
+                <Link className="phase-total-card" href={`/projet/${project.projectId ?? "local"}/phase/${phase.id}`} key={phase.id}>
                   <span className="phase-dot" style={{ background: phase.color }} />
                   <div>
                     <strong>{phase.name}</strong>
@@ -968,7 +1116,7 @@ export default function DashboardPage() {
                       {formatter.format(phase.total)} · {phase.count} dépense{phase.count > 1 ? "s" : ""}
                     </span>
                   </div>
-                </article>
+                </Link>
               ))}
             </div>
             <form className="phase-form" onSubmit={addPhase}>
@@ -987,7 +1135,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="phase-sections">
-            {filteredExpensesByPhase.map((phase) => {
+            {visibleExpensesByPhase.map((phase) => {
               const isCollapsed = collapsedPhaseIds.includes(phase.id);
 
               return (
@@ -1057,6 +1205,38 @@ export default function DashboardPage() {
                           </tbody>
                         </table>
                       </div>
+                    ) : hasNoExpenses ? (
+                      <div className="table-wrap ghost-expense-table" aria-label="Exemples de dépenses">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Dépense</th>
+                              <th>Associé</th>
+                              <th>Montant</th>
+                              <th>Mode de paiement</th>
+                              <th>Statut</th>
+                              <th>Justificatif</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ghostExpenses.map((expense) => (
+                              <tr className="ghost-row" key={expense.id}>
+                                <td>{new Date(expense.date).toLocaleDateString("fr-FR")}</td>
+                                <td>
+                                  <strong>{expense.title}</strong>
+                                  <p className="muted">{expense.category}</p>
+                                </td>
+                                <td>{expense.member}</td>
+                                <td>{formatter.format(0)}</td>
+                                <td>{expense.paymentMethod}</td>
+                                <td>{expense.status}</td>
+                                <td>{expense.receipt ?? "Exemple sans fichier"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     ) : (
                       <p className="muted phase-empty">Aucune dépense dans cette phase avec les filtres actuels.</p>
                     )
@@ -1064,6 +1244,49 @@ export default function DashboardPage() {
                 </section>
               );
             })}
+          </div>
+        </section>
+
+        <section className="card checklist-panel" id="todo">
+          <div className="panel-heading-row">
+            <div>
+              <span className="eyebrow">
+                <CheckSquare size={16} />
+                To do
+              </span>
+              <h2>Checklist projet</h2>
+              <p className="muted">Disponible sur tous les plans. Les tâches sont sauvegardées avec le projet.</p>
+            </div>
+          </div>
+          <form className="task-form" onSubmit={addTask}>
+            <input
+              className="input"
+              value={newTaskTitle}
+              onChange={(event) => setNewTaskTitle(event.target.value)}
+              placeholder="Ajouter une tâche : relancer un artisan, déposer un justificatif..."
+              aria-label="Nouvelle tâche"
+            />
+            <button className="button accent" type="submit">
+              <Plus size={18} />
+              Ajouter
+            </button>
+          </form>
+          <div className="task-list">
+            {tasks.length > 0 ? (
+              tasks.map((task) => (
+                <div className={`task-row ${task.done ? "done" : ""}`} key={task.id}>
+                  <label>
+                    <input type="checkbox" checked={task.done} onChange={() => void toggleTask(task.id)} />
+                    <span>{task.title}</span>
+                  </label>
+                  <button className="icon-action" type="button" onClick={() => void deleteTask(task.id)} aria-label="Supprimer la tâche">
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="muted phase-empty">Aucune tâche pour le moment.</p>
+            )}
           </div>
         </section>
 
@@ -1351,8 +1574,41 @@ export default function DashboardPage() {
               </div>
             </section>
           </>
-        ) : null}
+        ) : (
+          <>
+            <section className="card locked-pro-panel" id="revenues">
+              <span className="eyebrow">
+                <Lock size={16} />
+                Module Pro
+              </span>
+              <h2>Revenus</h2>
+              <p className="muted">Disponible avec le plan Pro — passer à Pro.</p>
+              <Link className="button secondary" href="/#tarifs">
+                Voir le plan Pro
+              </Link>
+            </section>
+            <section className="card locked-pro-panel" id="rentability">
+              <span className="eyebrow">
+                <Lock size={16} />
+                Module Pro
+              </span>
+              <h2>Rentabilité projet</h2>
+              <p className="muted">Disponible avec le plan Pro — passer à Pro.</p>
+              <Link className="button secondary" href="/#tarifs">
+                Voir le plan Pro
+              </Link>
+            </section>
+          </>
+        )}
       </section>
+
+      <nav className="mobile-bottom-nav" aria-label="Navigation mobile dashboard">
+        <a href="#expenses">Dépenses</a>
+        <a href="#balance">Solde</a>
+        <a href="#receipts">Justificatifs</a>
+        <a href="#agenda">Agenda</a>
+        <a href="#contacts">+ Plus</a>
+      </nav>
 
       {isExpenseModalOpen ? (
         <div className="modal-backdrop" role="presentation">

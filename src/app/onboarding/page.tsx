@@ -4,64 +4,70 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Plus, Trash2 } from "lucide-react";
 
-const projectTypes = [
-  "Construction",
-  "Ouverture restaurant",
-  "Commerce",
-  "Restauration",
-  "Service B2B",
-  "Immobilier",
-  "Événementiel",
-  "Créatif"
-];
-const currencies = [
-  { code: "EUR", label: "€ Euro" },
-  { code: "USD", label: "$ Dollar US" },
-  { code: "GBP", label: "£ Livre sterling" },
-  { code: "CHF", label: "CHF Franc suisse" },
-  { code: "CAD", label: "CAD Dollar canadien" },
-  { code: "MAD", label: "MAD Dirham marocain" }
-];
-const tabOptions = [
-  "Dépenses",
-  "Justificatifs",
-  "Solde & Équilibre",
-  "Budget",
-  "Coffre-fort",
-  "Synthèse associés",
-  "Exports"
-];
-const paymentMethodOptions = ["Espèces", "Virement", "Chèque", "CB"];
-const activePlan = "pro";
+type ProjectType = {
+  key: string;
+  label: string;
+  placeholder: string;
+};
 
 type Member = {
   id: string;
-  name: string;
-  role: string;
-  color: string;
+  firstName: string;
   sharePercentage: number;
+  color: string;
 };
 
 type Phase = {
   id: string;
   name: string;
+  selected: boolean;
 };
 
-const initialMembers: Member[] = [
-  { id: "m1", name: "Camille", role: "Opérations", color: "#c94a1a", sharePercentage: 50 },
-  { id: "m2", name: "Yanis", role: "Finance", color: "#0f0f0f", sharePercentage: 50 }
+const projectTypes: ProjectType[] = [
+  {
+    key: "renovation",
+    label: "🏠 Rénovation / Construction",
+    placeholder: "Ex : Rénovation Maison de Noirmoutier"
+  },
+  {
+    key: "tpe",
+    label: "🏪 Création d'entreprise / TPE",
+    placeholder: "Ex : Ouverture boutique Lyon"
+  },
+  {
+    key: "sci",
+    label: "🏢 SCI / Immobilier",
+    placeholder: "Ex : SCI Famille Rousseau"
+  },
+  {
+    key: "event",
+    label: "🎉 Autre événement",
+    placeholder: "Ex : Festival quartier Montreuil"
+  },
+  {
+    key: "wedding",
+    label: "💍 Mariage / Événement",
+    placeholder: "Ex : Mariage Sara et Isaac"
+  }
+];
+
+const budgetRanges = [
+  { label: "moins de 5 000€", value: 5000 },
+  { label: "5k-20k", value: 20000 },
+  { label: "20k-100k", value: 100000 },
+  { label: "+100k", value: 150000 },
+  { label: "Je ne sais pas encore", value: 0 }
 ];
 
 const phaseSuggestionsByType: Record<string, string[]> = {
-  Construction: ["Acquisition terrain", "Permis de construire", "Gros oeuvre", "Second oeuvre", "Livraison"],
-  "Ouverture restaurant": ["Bail et travaux", "Matériel cuisine", "Licence et conformité", "Stock lancement", "Communication"],
-  Restauration: ["Bail et travaux", "Matériel cuisine", "Licence et conformité", "Stock lancement", "Communication"],
-  Événementiel: ["Lieu", "Prestataires", "Communication", "Billetterie", "Jour J"],
-  Commerce: ["Local", "Travaux", "Stock lancement", "Marketing", "Ouverture"],
-  Immobilier: ["Acquisition", "Permis", "Travaux", "Ameublement", "Mise en location"],
-  "Service B2B": ["Cadrage", "Outils", "Production", "Commercial", "Lancement"],
-  Créatif: ["Préproduction", "Production", "Postproduction", "Diffusion", "Droits"]
+  renovation: ["Démolition", "Gros œuvre", "Second œuvre", "Finitions", "Mobilier"],
+  tpe: ["Juridique", "Local", "Marketing", "Stock", "RH", "Trésorerie"],
+  sci: ["Acquisition", "Travaux", "Notaire", "Charges", "Fiscalité"],
+  event: ["Lieu", "Traiteur", "Animation", "Communication", "Logistique", "Imprévus"],
+  wedding: ["Lieu", "Traiteur", "Animation", "Communication", "Logistique", "Imprévus"]
 };
+
+const memberColors = ["#c94a1a", "#0f0f0f", "#008c8c", "#5b21b6", "#1d4ed8"];
 
 function slugify(value: string) {
   return value
@@ -72,79 +78,41 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-function buildPhases(type: string): Phase[] {
-  const suggestions = phaseSuggestionsByType[type] ?? phaseSuggestionsByType.Commerce;
-
-  return suggestions.map((name, index) => ({
-    id: slugify(name) || `phase-${index + 1}`,
-    name
+function buildPhases(typeKey: string) {
+  return (phaseSuggestionsByType[typeKey] ?? phaseSuggestionsByType.renovation).map((name) => ({
+    id: slugify(name),
+    name,
+    selected: true
   }));
 }
 
 export default function OnboardingPage() {
-  const [projectName, setProjectName] = useState("Ouverture boutique Lyon");
-  const [projectType, setProjectType] = useState("Commerce");
-  const [currency, setCurrency] = useState(currencies[0].code);
-  const [endDate, setEndDate] = useState("2026-12-31");
-  const [totalBudget, setTotalBudget] = useState(25000);
-  const [revenueGeneration, setRevenueGeneration] = useState(true);
-  const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [phases, setPhases] = useState<Phase[]>(buildPhases("Commerce"));
-  const [tabs, setTabs] = useState<string[]>([
-    "Dépenses",
-    "Justificatifs",
-    "Solde & Équilibre",
-    "Budget",
-    "Coffre-fort"
+  const [step, setStep] = useState(1);
+  const [projectType, setProjectType] = useState(projectTypes[0]);
+  const [projectName, setProjectName] = useState("");
+  const [members, setMembers] = useState<Member[]>([
+    { id: "m1", firstName: "Sophie", sharePercentage: 50, color: memberColors[0] },
+    { id: "m2", firstName: "Marc", sharePercentage: 50, color: memberColors[1] }
   ]);
-  const [paymentMethods, setPaymentMethods] = useState<string[]>(["Espèces", "Virement", "CB"]);
-  const [status, setStatus] = useState("Configurez votre espace commun en moins de deux minutes.");
+  const [budgetRange, setBudgetRange] = useState(budgetRanges[2]);
+  const [phases, setPhases] = useState<Phase[]>(buildPhases(projectTypes[0].key));
+  const [customPhaseName, setCustomPhaseName] = useState("");
+  const [status, setStatus] = useState("Répondez aux questions une par une, comme dans une conversation.");
   const [loading, setLoading] = useState(false);
-  const isProPlan = activePlan === "pro";
+  const [createdProjectId, setCreatedProjectId] = useState<string | undefined>();
+  const [inviteEmails, setInviteEmails] = useState<Record<string, string>>({});
+  const [inviteStatus, setInviteStatus] = useState("Ajoutez les emails quand vous êtes prêt à inviter l'équipe.");
 
+  const selectedPhases = phases.filter((phase) => phase.selected && phase.name.trim());
   const shareTotal = useMemo(
     () => members.reduce((sum, member) => sum + Number(member.sharePercentage || 0), 0),
     [members]
   );
+  const selectedProjectName = projectName.trim();
 
-  const isReady = useMemo(
-    () =>
-      projectName.trim().length > 1 &&
-      endDate &&
-      totalBudget > 0 &&
-      phases.length > 0 &&
-      paymentMethods.length > 0 &&
-      phases.every((phase) => phase.name.trim().length > 0) &&
-      members.every((member) => member.name.trim() && member.role.trim() && member.sharePercentage >= 0) &&
-      Math.abs(shareTotal - 100) < 0.01,
-    [endDate, members, paymentMethods.length, phases, projectName, shareTotal, totalBudget]
-  );
-
-  function updateMember(id: string, key: keyof Omit<Member, "id">, value: string | number) {
-    setMembers((current) => current.map((member) => (member.id === id ? { ...member, [key]: value } : member)));
-  }
-
-  function updateProjectType(nextType: string) {
-    setProjectType(nextType);
-    setPhases(buildPhases(nextType));
-  }
-
-  function updatePhase(id: string, name: string) {
-    setPhases((current) => current.map((phase) => (phase.id === id ? { ...phase, name } : phase)));
-  }
-
-  function addPhase() {
-    setPhases((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        name: ""
-      }
-    ]);
-  }
-
-  function removePhase(id: string) {
-    setPhases((current) => (current.length === 1 ? current : current.filter((phase) => phase.id !== id)));
+  function selectProjectType(type: ProjectType) {
+    setProjectType(type);
+    setPhases(buildPhases(type.key));
   }
 
   function addMember() {
@@ -152,52 +120,100 @@ export default function OnboardingPage() {
       ...current,
       {
         id: crypto.randomUUID(),
-        name: "",
-        role: "",
-        color: "#7c3aed",
-        sharePercentage: 0
+        firstName: "",
+        sharePercentage: 0,
+        color: memberColors[current.length % memberColors.length]
       }
     ]);
+  }
+
+  function updateMember(id: string, key: keyof Omit<Member, "id" | "color">, value: string | number) {
+    setMembers((current) => current.map((member) => (member.id === id ? { ...member, [key]: value } : member)));
   }
 
   function removeMember(id: string) {
     setMembers((current) => (current.length === 1 ? current : current.filter((member) => member.id !== id)));
   }
 
-  function toggleTab(tab: string) {
-    setTabs((current) => (current.includes(tab) ? current.filter((item) => item !== tab) : [...current, tab]));
+  function togglePhase(id: string) {
+    setPhases((current) => current.map((phase) => (phase.id === id ? { ...phase, selected: !phase.selected } : phase)));
   }
 
-  function togglePaymentMethod(method: string) {
-    setPaymentMethods((current) =>
-      current.includes(method) ? current.filter((item) => item !== method) : [...current, method]
-    );
+  function addCustomPhase() {
+    const name = customPhaseName.trim();
+
+    if (!name) {
+      return;
+    }
+
+    setPhases((current) => [...current, { id: `${slugify(name)}-${current.length + 1}`, name, selected: true }]);
+    setCustomPhaseName("");
   }
 
-  async function submitOnboarding(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function canMoveNext() {
+    if (step === 1) {
+      return Boolean(projectType);
+    }
 
-    if (!isReady) {
+    if (step === 2) {
+      return selectedProjectName.length > 1;
+    }
+
+    if (step === 3) {
+      return (
+        members.every((member) => member.firstName.trim().length > 0 && member.sharePercentage >= 0) &&
+        Math.abs(shareTotal - 100) < 0.01
+      );
+    }
+
+    if (step === 4) {
+      return Boolean(budgetRange);
+    }
+
+    return selectedPhases.length > 0;
+  }
+
+  function nextStep() {
+    if (!canMoveNext()) {
       setStatus(
-        "Vérifiez le projet, les phases, le budget, les moyens de paiement et les parts : elles doivent totaliser 100 %."
+        step === 3
+          ? "Les parts des membres doivent totaliser exactement 100 % avant de continuer."
+          : "Complétez cette étape avant de continuer."
       );
       return;
     }
 
+    setStatus("Parfait, continuons.");
+    setStep((current) => Math.min(current + 1, 6));
+  }
+
+  async function createProject() {
+    if (!canMoveNext()) {
+      setStatus("Sélectionnez au moins une phase avant le récapitulatif.");
+      return;
+    }
+
     const payload = {
-      projectName,
-      projectType,
-      currency,
-      endDate,
-      totalBudget,
-      revenueGeneration: isProPlan ? revenueGeneration : false,
-      paymentMethods,
-      phases: phases.map((phase, index) => ({
-        id: phase.id.startsWith("phase-") ? slugify(phase.name) || `phase-${index + 1}` : phase.id,
-        name: phase.name.trim()
+      projectName: selectedProjectName,
+      projectType: projectType.label,
+      currency: "EUR",
+      endDate: "2026-12-31",
+      totalBudget: budgetRange.value,
+      budgetRange: budgetRange.label,
+      revenueGeneration: false,
+      paymentMethods: ["Espèces", "Virement", "Chèque", "CB"],
+      tabs: ["Dépenses", "To do", "Justificatifs", "Solde & Équilibre", "Budget", "Coffre-fort", "Agenda", "Contacts"],
+      phases: selectedPhases.map((phase, index) => ({
+        id: slugify(phase.name) || `phase-${index + 1}`,
+        name: phase.name,
+        color: memberColors[index % memberColors.length]
       })),
-      tabs,
-      members: members.map(({ name, role, color, sharePercentage }) => ({ name, role, color, sharePercentage }))
+      members: members.map((member) => ({
+        name: member.firstName.trim(),
+        role: "Membre",
+        color: member.color,
+        sharePercentage: member.sharePercentage
+      }))
     };
 
     localStorage.setItem("francofacta:onboarding", JSON.stringify(payload));
@@ -211,19 +227,57 @@ export default function OnboardingPage() {
         },
         body: JSON.stringify(payload)
       });
-      const result = (await response.json()) as { saved?: boolean; mode?: string; error?: string };
+      const result = (await response.json()) as { saved?: boolean; mode?: string; projectId?: string; error?: string };
 
       if (!response.ok) {
         throw new Error(result.error ?? "Sauvegarde impossible.");
       }
 
-      setStatus(result.mode === "demo" ? "Mode démo sauvegardé localement. Redirection..." : "Projet créé. Redirection...");
-      window.location.href = "/dashboard";
+      const projectId = result.projectId ?? `local-${slugify(selectedProjectName)}`;
+      const savedPayload = { ...payload, projectId, invitationPending: true };
+      localStorage.setItem("francofacta:onboarding", JSON.stringify(savedPayload));
+      setCreatedProjectId(projectId);
+      setStatus(result.mode === "demo" ? "Projet préparé en mode démo." : "Projet créé.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Erreur inconnue.");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function sendInvitations() {
+    const invitationMembers = members.map((member) => ({
+      firstName: member.firstName.trim(),
+      email: inviteEmails[member.id]?.trim() ?? ""
+    }));
+
+    if (invitationMembers.some((member) => !member.email)) {
+      setInviteStatus("Renseignez un email pour chaque membre avant l'envoi.");
+      return;
+    }
+
+    const response = await fetch("/api/invitations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        projectId: createdProjectId,
+        members: invitationMembers
+      })
+    });
+    const result = (await response.json()) as { sent?: boolean; mode?: string; error?: string };
+
+    if (!response.ok) {
+      setInviteStatus(result.error ?? "Envoi impossible pour le moment.");
+      return;
+    }
+
+    setInviteStatus(
+      result.mode === "demo"
+        ? "Mode démo : les invitations sont prêtes, configurez Supabase pour envoyer les emails."
+        : "Invitations envoyées avec un lien direct vers le projet."
+    );
   }
 
   return (
@@ -233,248 +287,229 @@ export default function OnboardingPage() {
           <span>F</span>
           FrancoFacta
         </Link>
-        <Link className="button secondary" href="/dashboard">
-          Passer en démo
+        <Link className="button secondary" href="/dashboard-demo">
+          Voir le dashboard
         </Link>
       </header>
 
-      <section className="container onboarding-grid">
+      <section className="container onboarding-grid conversational-onboarding">
         <aside className="onboarding-copy">
           <span className="eyebrow">
             <Check size={16} />
-            Onboarding projet
+            Onboarding conversationnel
           </span>
-          <h1>Paramétrez votre espace associés.</h1>
+          <h1>Créons votre projet à plusieurs.</h1>
           <p className="muted">
-            FrancoFacta crée les bonnes vues dès le départ : membres, parts, dates, budget, revenus, moyens de paiement
-            et onglets pour suivre les dépenses sans tableur.
+            Cinq étapes pour poser le type de projet, le nom, les membres, le budget et les phases avant le récapitulatif.
           </p>
           <div className="setup-summary card">
-            <strong>{projectName || "Votre projet"}</strong>
-            <span>{projectType}</span>
-            <span>{currency}</span>
-            <span>{members.length} associés</span>
-            <span>{shareTotal}% répartis</span>
-            <span>{phases.length} phases</span>
-            <span>{paymentMethods.length} moyens de paiement</span>
+            <strong>{selectedProjectName || "Votre projet"}</strong>
+            <span>{projectType.label}</span>
+            <span>{members.length} membre{members.length > 1 ? "s" : ""}</span>
+            <span className={Math.abs(shareTotal - 100) < 0.01 ? "positive-balance" : "negative-balance"}>
+              {shareTotal}% répartis
+            </span>
+            <span>{budgetRange.label}</span>
+            <span>{selectedPhases.length} phases</span>
           </div>
         </aside>
 
-        <form className="card onboarding-form" onSubmit={submitOnboarding}>
+        <section className="card onboarding-form">
+          <div className="conversation-progress" aria-label="Progression onboarding">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <span className={item <= step ? "active" : ""} key={item}>
+                {item}
+              </span>
+            ))}
+          </div>
           <p className="muted status-text">{status}</p>
 
-          <div className="form-grid-two">
-            <div className="form-field">
-              <label htmlFor="projectName">Nom du projet</label>
+          {step === 1 ? (
+            <div className="conversation-step">
+              <h2>Quel type de projet lancez-vous ?</h2>
+              <div className="type-choice-grid">
+                {projectTypes.map((type) => (
+                  <button
+                    className={`tab-choice ${projectType.key === type.key ? "active" : ""}`}
+                    type="button"
+                    key={type.key}
+                    onClick={() => selectProjectType(type)}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {step === 2 ? (
+            <div className="conversation-step">
+              <h2>Comment s'appelle le projet ?</h2>
               <input
                 className="input"
-                id="projectName"
                 value={projectName}
                 onChange={(event) => setProjectName(event.target.value)}
-                placeholder="Ex : lancement showroom Nantes"
-                required
+                placeholder={projectType.placeholder}
+                autoFocus
               />
             </div>
-            <div className="form-field">
-              <label htmlFor="projectType">Type</label>
-              <select
-                className="select"
-                id="projectType"
-                value={projectType}
-                onChange={(event) => updateProjectType(event.target.value)}
-              >
-                {projectTypes.map((type) => (
-                  <option key={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          ) : null}
 
-          <div className="form-grid-two">
-            <div className="form-field">
-              <label htmlFor="currency">Devise</label>
-              <select
-                className="select"
-                id="currency"
-                value={currency}
-                onChange={(event) => setCurrency(event.target.value)}
-              >
-                {currencies.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-field">
-              <label htmlFor="endDate">Date de fin</label>
-              <input
-                className="input"
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-grid-two">
-            <div className="form-field">
-              <label htmlFor="totalBudget">Budget total</label>
-              <input
-                className="input"
-                id="totalBudget"
-                min="1"
-                step="100"
-                type="number"
-                value={totalBudget}
-                onChange={(event) => setTotalBudget(Number(event.target.value))}
-                required
-              />
-            </div>
-            <div className="form-field">
-              <label htmlFor="revenueGeneration">Génération de revenus</label>
-              <select
-                className="select"
-                id="revenueGeneration"
-                value={revenueGeneration ? "yes" : "no"}
-                onChange={(event) => setRevenueGeneration(event.target.value === "yes")}
-                disabled={!isProPlan}
-              >
-                <option value="yes">Oui — module Pro</option>
-                <option value="no">Non</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-field">
-            <div className="field-row">
-              <div>
-                <label>Phases du projet</label>
-                <p className="muted field-hint">
-                  Suggestions adaptées au type de projet, à renommer ou compléter selon votre réalité.
-                </p>
-              </div>
-              <button className="small-action" type="button" onClick={() => setPhases(buildPhases(projectType))}>
-                Recharger suggestions
-              </button>
-              <button className="small-action" type="button" onClick={addPhase}>
-                <Plus size={16} />
-                Ajouter
-              </button>
-            </div>
-            <div className="phases-editor">
-              {phases.map((phase, index) => (
-                <div className="phase-editor-row" key={phase.id}>
-                  <span>{index + 1}</span>
-                  <input
-                    className="input"
-                    value={phase.name}
-                    onChange={(event) => updatePhase(phase.id, event.target.value)}
-                    placeholder="Ex : Acquisition terrain"
-                    required
-                  />
-                  <button className="icon-action" type="button" onClick={() => removePhase(phase.id)} aria-label="Supprimer">
-                    <Trash2 size={17} />
-                  </button>
+          {step === 3 ? (
+            <div className="conversation-step">
+              <div className="field-row">
+                <div>
+                  <h2>Qui participe, et à quelle part ?</h2>
+                  <p className="muted field-hint">Les emails seront collectés après la création du projet.</p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-field">
-            <div className="field-row">
-              <label>Membres associés</label>
-              <span className={`share-total ${Math.abs(shareTotal - 100) < 0.01 ? "valid" : "invalid"}`}>
-                Total : {shareTotal} %
-              </span>
+                <span className={`share-total ${Math.abs(shareTotal - 100) < 0.01 ? "valid" : "invalid"}`}>
+                  Total : {shareTotal} %
+                </span>
+              </div>
+              <div className="members-editor">
+                {members.map((member) => (
+                  <div className="member-editor conversation-member-editor" key={member.id}>
+                    <input
+                      className="input"
+                      value={member.firstName}
+                      onChange={(event) => updateMember(member.id, "firstName", event.target.value)}
+                      placeholder="Prénom"
+                    />
+                    <input
+                      className="input"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      type="number"
+                      value={member.sharePercentage}
+                      onChange={(event) => updateMember(member.id, "sharePercentage", Number(event.target.value))}
+                      placeholder="Part %"
+                    />
+                    <button className="icon-action" type="button" onClick={() => removeMember(member.id)} aria-label="Supprimer">
+                      <Trash2 size={17} />
+                    </button>
+                  </div>
+                ))}
+              </div>
               <button className="small-action" type="button" onClick={addMember}>
                 <Plus size={16} />
-                Ajouter
+                Ajouter un membre
               </button>
+              {Math.abs(shareTotal - 100) >= 0.01 ? (
+                <p className="validation-error">Le total des parts doit être égal à 100 %.</p>
+              ) : null}
             </div>
-            <div className="members-editor">
-              {members.map((member) => (
-                <div className="member-editor member-editor-wide" key={member.id}>
-                  <input
-                    className="input"
-                    value={member.name}
-                    onChange={(event) => updateMember(member.id, "name", event.target.value)}
-                    placeholder="Nom"
-                    required
-                  />
-                  <input
-                    className="input"
-                    value={member.role}
-                    onChange={(event) => updateMember(member.id, "role", event.target.value)}
-                    placeholder="Rôle"
-                    required
-                  />
-                  <input
-                    className="input"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    type="number"
-                    value={member.sharePercentage}
-                    onChange={(event) => updateMember(member.id, "sharePercentage", Number(event.target.value))}
-                    aria-label={`Part de ${member.name || "membre"}`}
-                    placeholder="Part %"
-                    required
-                  />
-                  <input
-                    className="color-input"
-                    type="color"
-                    value={member.color}
-                    onChange={(event) => updateMember(member.id, "color", event.target.value)}
-                    aria-label={`Couleur de ${member.name || "membre"}`}
-                  />
-                  <button className="icon-action" type="button" onClick={() => removeMember(member.id)} aria-label="Supprimer">
-                    <Trash2 size={17} />
+          ) : null}
+
+          {step === 4 ? (
+            <div className="conversation-step">
+              <h2>Quel budget anticipez-vous ?</h2>
+              <div className="type-choice-grid">
+                {budgetRanges.map((range) => (
+                  <button
+                    className={`tab-choice ${budgetRange.label === range.label ? "active" : ""}`}
+                    type="button"
+                    key={range.label}
+                    onClick={() => setBudgetRange(range)}
+                  >
+                    {range.label}
                   </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {step === 5 ? (
+            <div className="conversation-step">
+              <h2>Quelles phases voulez-vous suivre ?</h2>
+              <p className="muted field-hint">Sélectionnez, désélectionnez ou ajoutez vos propres phases.</p>
+              <div className="tabs-selector phase-choice-list">
+                {phases.map((phase) => (
+                  <button
+                    className={`tab-choice ${phase.selected ? "active" : ""}`}
+                    type="button"
+                    key={phase.id}
+                    onClick={() => togglePhase(phase.id)}
+                  >
+                    {phase.name}
+                  </button>
+                ))}
+              </div>
+              <div className="phase-form">
+                <input
+                  className="input"
+                  value={customPhaseName}
+                  onChange={(event) => setCustomPhaseName(event.target.value)}
+                  placeholder="Ajouter une phase personnalisée"
+                />
+                <button className="button secondary" type="button" onClick={addCustomPhase}>
+                  <Plus size={18} />
+                  Ajouter
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {step === 6 ? (
+            <div className="conversation-step">
+              <h2>Récapitulatif avant création</h2>
+              <div className="recap-grid">
+                <span>Type : {projectType.label}</span>
+                <span>Nom : {selectedProjectName}</span>
+                <span>Budget : {budgetRange.label}</span>
+                <span>Membres : {members.map((member) => `${member.firstName} ${member.sharePercentage}%`).join(", ")}</span>
+                <span>Phases : {selectedPhases.map((phase) => phase.name).join(", ")}</span>
+              </div>
+              {createdProjectId ? (
+                <div className="invite-banner">
+                  <h3>Invitez vos membres pour collaborer en temps réel</h3>
+                  <p className="muted">{inviteStatus}</p>
+                  <div className="invite-fields">
+                    {members.map((member) => (
+                      <label className="form-field" key={member.id}>
+                        <span>{member.firstName || "Membre"}</span>
+                        <input
+                          className="input"
+                          type="email"
+                          value={inviteEmails[member.id] ?? ""}
+                          onChange={(event) =>
+                            setInviteEmails((current) => ({ ...current, [member.id]: event.target.value }))
+                          }
+                          placeholder={`${member.firstName || "membre"}@email.fr`}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <div className="hero-actions">
+                    <button className="button accent" type="button" onClick={() => void sendInvitations()}>
+                      Envoyer les invitations
+                    </button>
+                    <Link className="button secondary" href="/dashboard">
+                      Ouvrir le dashboard
+                    </Link>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label>Moyens de paiement autorisés</label>
-            <div className="tabs-selector">
-              {paymentMethodOptions.map((method) => (
-                <button
-                  className={`tab-choice ${paymentMethods.includes(method) ? "active" : ""}`}
-                  type="button"
-                  key={method}
-                  onClick={() => togglePaymentMethod(method)}
-                >
-                  {method}
+              ) : (
+                <button className="button accent" type="button" disabled={loading} onClick={() => void createProject()}>
+                  {loading ? "Création..." : "Créer le projet"}
+                  <ArrowRight size={18} />
                 </button>
-              ))}
+              )}
             </div>
-          </div>
+          ) : null}
 
-          <div className="form-field">
-            <label>Onglets à activer</label>
-            <div className="tabs-selector">
-              {tabOptions.map((tab) => (
-                <button
-                  className={`tab-choice ${tabs.includes(tab) ? "active" : ""}`}
-                  type="button"
-                  key={tab}
-                  onClick={() => toggleTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+          <div className="conversation-actions">
+            <button className="button secondary" type="button" disabled={step === 1} onClick={() => setStep((current) => Math.max(current - 1, 1))}>
+              Retour
+            </button>
+            {step < 6 ? (
+              <button className="button accent" type="button" onClick={nextStep}>
+                Continuer
+                <ArrowRight size={18} />
+              </button>
+            ) : null}
           </div>
-
-          <button className="button accent" type="submit" disabled={loading}>
-            {loading ? "Création..." : "Créer mon tableau de bord"}
-            <ArrowRight size={18} />
-          </button>
-        </form>
+        </section>
       </section>
     </main>
   );

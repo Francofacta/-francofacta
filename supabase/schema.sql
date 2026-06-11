@@ -32,6 +32,17 @@ create table if not exists public.project_tabs (
   position int not null default 0
 );
 
+create table if not exists public.project_phases (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  slug text not null,
+  name text not null,
+  color text not null default '#0f0f0f',
+  position int not null default 0,
+  created_at timestamptz not null default now(),
+  unique(project_id, slug)
+);
+
 do $$
 begin
   create type public.expense_status as enum ('Payée', 'À rembourser', 'En validation');
@@ -42,6 +53,7 @@ end $$;
 create table if not exists public.expenses (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
+  phase_id uuid references public.project_phases(id) on delete set null,
   member_id uuid references public.project_members(id) on delete set null,
   title text not null,
   category text not null,
@@ -89,6 +101,24 @@ create table if not exists public.project_credentials (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.project_tasks (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  title text not null,
+  done boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.project_invitations (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  first_name text not null,
+  email text not null,
+  invite_link text not null,
+  sent_at timestamptz not null default now()
+);
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete set null,
@@ -105,9 +135,12 @@ create table if not exists public.subscriptions (
 alter table public.projects enable row level security;
 alter table public.project_members enable row level security;
 alter table public.project_tabs enable row level security;
+alter table public.project_phases enable row level security;
 alter table public.expenses enable row level security;
 alter table public.project_revenues enable row level security;
 alter table public.project_credentials enable row level security;
+alter table public.project_tasks enable row level security;
+alter table public.project_invitations enable row level security;
 alter table public.subscriptions enable row level security;
 
 alter table public.projects
@@ -120,6 +153,7 @@ alter table public.project_members
   add column if not exists share_percentage numeric(5, 2) not null default 0;
 
 alter table public.expenses
+  add column if not exists phase_id uuid references public.project_phases(id) on delete set null,
   add column if not exists payment_method text not null default 'Virement',
   add column if not exists receipt_required boolean not null default true;
 
@@ -182,6 +216,33 @@ create policy "project tabs managed by owner"
     exists (
       select 1 from public.projects
       where projects.id = project_tabs.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "project phases read by owner"
+  on public.project_phases for select
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_phases.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "project phases managed by owner"
+  on public.project_phases for all
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_phases.project_id
+      and projects.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_phases.project_id
       and projects.owner_id = auth.uid()
     )
   );
@@ -263,6 +324,60 @@ create policy "credentials managed by owner"
     exists (
       select 1 from public.projects
       where projects.id = project_credentials.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "tasks read by owner"
+  on public.project_tasks for select
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_tasks.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "tasks managed by owner"
+  on public.project_tasks for all
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_tasks.project_id
+      and projects.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_tasks.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "invitations read by owner"
+  on public.project_invitations for select
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_invitations.project_id
+      and projects.owner_id = auth.uid()
+    )
+  );
+
+create policy "invitations managed by owner"
+  on public.project_invitations for all
+  using (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_invitations.project_id
+      and projects.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.projects
+      where projects.id = project_invitations.project_id
       and projects.owner_id = auth.uid()
     )
   );

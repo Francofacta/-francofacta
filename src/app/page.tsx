@@ -31,47 +31,67 @@ const steps = [
   "Équilibrez les avances avec des KPI clairs par membre."
 ];
 
+const heroScenarios = [
+  {
+    project: "Ouverture boutique Lyon",
+    context: "Camille + Yanis, associés",
+    total: "12 840 EUR",
+    pending: "1 260 EUR",
+    members: [
+      { name: "Camille - opérations", amount: "4 200 EUR", color: "#c94a1a" },
+      { name: "Yanis - finance", amount: "5 120 EUR", color: "#0f0f0f" }
+    ],
+    receipt: "Facture enseigne.pdf"
+  },
+  {
+    project: "Rénovation Maison de Noirmoutier",
+    context: "Sophie + Marc, couple",
+    total: "48 730 EUR",
+    pending: "3 480 EUR",
+    members: [
+      { name: "Sophie - matériaux", amount: "21 600 EUR", color: "#008c8c" },
+      { name: "Marc - artisans", amount: "27 130 EUR", color: "#7c2d12" }
+    ],
+    receipt: "Devis toiture.pdf"
+  },
+  {
+    project: "Mariage Sara et Isaac",
+    context: "groupe d'amis",
+    total: "18 420 EUR",
+    pending: "890 EUR",
+    members: [
+      { name: "Nora - lieu", amount: "6 200 EUR", color: "#be185d" },
+      { name: "Adam - traiteur", amount: "4 950 EUR", color: "#5b21b6" }
+    ],
+    receipt: "Acompte traiteur.pdf"
+  },
+  {
+    project: "SCI Famille Rousseau",
+    context: "3 frères/sœurs, bien immobilier",
+    total: "96 300 EUR",
+    pending: "7 540 EUR",
+    members: [
+      { name: "Élise - notaire", amount: "31 800 EUR", color: "#1d4ed8" },
+      { name: "Hugo - travaux", amount: "36 400 EUR", color: "#167a4a" }
+    ],
+    receipt: "Acte notarié.pdf"
+  }
+];
+
 export default function Home() {
   const persoPlan = pricingPlans.find((plan) => plan.key === "perso");
   const teamPlans = pricingPlans.filter((plan) => plan.key !== "perso");
-  const [heroBadge, setHeroBadge] = useState("Pour les associés de TPE");
+  const [activeScenarioIndex, setActiveScenarioIndex] = useState(0);
 
   useEffect(() => {
-    const persoPricing = document.getElementById("pricing-perso");
-    const teamPricingCards = Array.from(document.querySelectorAll("[data-team-pricing='true']"));
+    const interval = window.setInterval(() => {
+      setActiveScenarioIndex((current) => (current + 1) % heroScenarios.length);
+    }, 3600);
 
-    if (!persoPricing && teamPricingCards.length === 0) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
-
-        if (!visibleEntry) {
-          return;
-        }
-
-        setHeroBadge(
-          visibleEntry.target.id === "pricing-perso" ? "Pour vos projets personnels" : "Pour les associés de TPE"
-        );
-      },
-      {
-        rootMargin: "-28% 0px -42% 0px",
-        threshold: [0.1, 0.35, 0.6]
-      }
-    );
-
-    if (persoPricing) {
-      observer.observe(persoPricing);
-    }
-
-    teamPricingCards.forEach((card) => observer.observe(card));
-
-    return () => observer.disconnect();
+    return () => window.clearInterval(interval);
   }, []);
+
+  const activeScenario = heroScenarios[activeScenarioIndex];
 
   return (
     <main>
@@ -84,7 +104,7 @@ export default function Home() {
           <div className="nav-links">
             <Link href="#fonctionnement">Fonctionnement</Link>
             <Link href="#tarifs">Tarifs</Link>
-            <Link href="/dashboard">Démo dashboard</Link>
+            <Link href="/dashboard-demo">Démo dashboard</Link>
           </div>
           <Link className="button secondary nav-cta" href="/auth">
             Connexion
@@ -99,16 +119,20 @@ export default function Home() {
               <ShieldCheck size={16} />
               Qui a avancé quoi ? Qui rembourse qui ? Avec justificatifs, en temps réel.
             </span>
-            <span className="hero-audience-badge">{heroBadge}</span>
+            <span className="hero-audience-badge">Pour vos projets à plusieurs</span>
             <h1>Entre potes, époux ou associés — reprenez le contrôle.</h1>
             <p>
-              FrancoFacta centralise les frais, justificatifs et avances de chaque partenaire pour garder une vision
-              nette des contributions, remboursements et budgets projet.
+              Qui a avancé quoi ? Qui rembourse qui ? Où est le justificatif ? FrancoFacta répond à tout — en temps réel.
             </p>
+            <p className="hero-tagline">Vos projets méritent mieux qu&apos;un Excel partagé et un groupe WhatsApp.</p>
             <div className="hero-actions">
               <CheckoutButton plan="starter" variant="accent">
                 Démarrer avec Starter
               </CheckoutButton>
+              <Link className="button secondary" href="/dashboard-demo">
+                Voir le dashboard
+                <ArrowUpRight size={18} />
+              </Link>
               <Link className="button secondary" href="/onboarding?mode=demo">
                 Configurer un projet
                 <ArrowUpRight size={18} />
@@ -128,34 +152,32 @@ export default function Home() {
               <span />
             </div>
             <div className="mini-dashboard">
-              <div>
+              <div className="hero-scenario-card" key={activeScenario.project}>
                 <p className="muted">Projet</p>
-                <h3>Ouverture boutique Lyon</h3>
+                <h3>{activeScenario.project}</h3>
+                <span>{activeScenario.context}</span>
               </div>
               <div className="mini-kpis">
                 <div>
                   <span>Total engagé</span>
-                  <strong>12 840 EUR</strong>
+                  <strong>{activeScenario.total}</strong>
                 </div>
                 <div>
                   <span>À rembourser</span>
-                  <strong>1 260 EUR</strong>
+                  <strong>{activeScenario.pending}</strong>
                 </div>
               </div>
-              <div className="member-row">
-                <span className="avatar-dot" style={{ background: "#c94a1a" }} />
-                <span>Camille - opérations</span>
-                <strong>4 200 EUR</strong>
-              </div>
-              <div className="member-row">
-                <span className="avatar-dot" style={{ background: "#0f0f0f" }} />
-                <span>Yanis - finance</span>
-                <strong>5 120 EUR</strong>
-              </div>
+              {activeScenario.members.map((member) => (
+                <div className="member-row" key={member.name}>
+                  <span className="avatar-dot" style={{ background: member.color }} />
+                  <span>{member.name}</span>
+                  <strong>{member.amount}</strong>
+                </div>
+              ))}
               <div className="receipt-card">
                 <FileText size={20} />
                 <div>
-                  <strong>Facture enseigne.pdf</strong>
+                  <strong>{activeScenario.receipt}</strong>
                   <p className="muted">Justificatif ajouté et lié à la dépense.</p>
                 </div>
               </div>
@@ -287,7 +309,7 @@ export default function Home() {
             <CheckoutButton plan="starter" variant="accent">
               Choisir Starter
             </CheckoutButton>
-            <Link className="button secondary" href="/dashboard">
+            <Link className="button secondary" href="/dashboard-demo">
               Voir le tableau de bord
             </Link>
           </div>
