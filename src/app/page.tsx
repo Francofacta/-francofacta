@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, CheckCircle2, CircleDollarSign, FileText, HandCoins, PieChart, ShieldCheck, Users } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, CircleDollarSign, FileText, HandCoins, PieChart, Users } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { pricingPlans } from "@/lib/pricing";
 
@@ -115,13 +115,9 @@ export default function Home() {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow">
-              <ShieldCheck size={16} />
-              Qui a avancé quoi ? Qui rembourse qui ? Avec justificatifs, en temps réel.
-            </span>
             <span className="hero-audience-badge">Pour vos projets à plusieurs</span>
             <h1>Entre potes, époux ou associés — reprenez le contrôle.</h1>
-            <p>
+            <p className="hero-subtitle">
               Qui a avancé quoi ? Qui rembourse qui ? Où est le justificatif ? FrancoFacta répond à tout — en temps réel.
             </p>
             <p className="hero-tagline">Vos projets méritent mieux qu&apos;un Excel partagé et un groupe WhatsApp.</p>

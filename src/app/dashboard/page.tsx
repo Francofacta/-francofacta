@@ -404,6 +404,14 @@ export default function DashboardPage() {
   const isProPlan = activePlan === "pro";
 
   useEffect(() => {
+    if (window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
+
+  useEffect(() => {
     const stored = localStorage.getItem("francofacta:onboarding");
 
     if (stored) {
@@ -1453,6 +1461,9 @@ export default function DashboardPage() {
             <div className="member-values">
               <span>Inclus dans Perso, Starter, Pro et Sur mesure</span>
             </div>
+            <Link className="small-action" href="/dashboard/agenda">
+              Ajouter
+            </Link>
           </article>
           <article className="card member-kpi" id="contacts">
             <div className="member-title">
@@ -1465,6 +1476,9 @@ export default function DashboardPage() {
             <div className="member-values">
               <span>Inclus dans Perso, Starter, Pro et Sur mesure</span>
             </div>
+            <Link className="small-action" href="/dashboard/contacts">
+              Ajouter
+            </Link>
           </article>
           <article className="card member-kpi">
             <div className="member-title">
@@ -1609,7 +1623,13 @@ export default function DashboardPage() {
         <a href="#balance">Solde</a>
         <a href="#receipts">Justificatifs</a>
         <a href="#agenda">Agenda</a>
-        <a href="#contacts">+ Plus</a>
+        <details className="mobile-more-menu">
+          <summary>+ Plus</summary>
+          <div>
+            <Link href="/dashboard/agenda">Agenda</Link>
+            <Link href="/dashboard/contacts">Contacts</Link>
+          </div>
+        </details>
       </nav>
 
       {isExpenseModalOpen ? (

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
 import { ArrowDownUp, CalendarDays, CheckSquare, FileText, Lock, Plus, ReceiptText, TrendingUp, Users } from "lucide-react";
 import { noirmoutierDemo } from "@/lib/demo-project";
 
@@ -32,6 +35,14 @@ export default function DashboardDemoPage() {
     .filter((revenue) => revenue.status === "Encaissé")
     .reduce((sum, revenue) => sum + revenue.amount, 0);
   const margin = revenueCollected - totalExpenses;
+
+  useEffect(() => {
+    if (window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
 
   return (
     <main className="dashboard-page demo-dashboard-page">
@@ -339,7 +350,13 @@ export default function DashboardDemoPage() {
         <a href="#balance">Solde</a>
         <a href="#receipts">Justificatifs</a>
         <a href="#agenda">Agenda</a>
-        <a href="#contacts">+ Plus</a>
+        <details className="mobile-more-menu">
+          <summary>+ Plus</summary>
+          <div>
+            <a href="#agenda">Agenda</a>
+            <a href="#contacts">Contacts</a>
+          </div>
+        </details>
       </nav>
 
       <Link className="floating-demo-cta" href="/#tarifs">
