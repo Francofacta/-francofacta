@@ -109,16 +109,20 @@ export default function PhaseDetailPage() {
 
   useEffect(() => {
     if (params.projectId === noirmoutierDemo.id) {
-      setProject(fallbackProject);
-      setExpenses(noirmoutierDemo.expenses);
+      queueMicrotask(() => {
+        setProject(fallbackProject);
+        setExpenses(noirmoutierDemo.expenses);
+      });
       return;
     }
 
     const stored = localStorage.getItem("francofacta:onboarding");
 
     if (!stored) {
-      setProject(localFallbackProject);
-      setExpenses(localFallbackExpenses);
+      queueMicrotask(() => {
+        setProject(localFallbackProject);
+        setExpenses(localFallbackExpenses);
+      });
       return;
     }
 
