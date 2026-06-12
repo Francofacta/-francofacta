@@ -74,37 +74,52 @@ async function findProfileUserIdByEmail(supabase: SupabaseServiceClient, email: 
 }
 
 async function findAuthUserIdByEmail(supabase: SupabaseServiceClient, email: string) {
-  const perPage = 1000;
+  try {
+    const profileUserId = await findProfileUserIdByEmail(supabase, email);
 
-  for (let page = 1; page <= 10; page += 1) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
-
-    if (error) {
-      console.warn("[stripe-webhook] Unable to inspect Supabase users by email", {
-        email,
-        error: error.message
-      });
-      return null;
+    if (profileUserId) {
+      return profileUserId;
     }
 
-    const user = data.users.find((item) => normalizeEmail(item.email) === email);
+    const perPage = 1000;
 
-    if (user) {
-      return user.id;
+    for (let page = 1; page <= 10; page += 1) {
+      const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+
+      if (error) {
+        console.warn("[stripe-webhook] Unable to inspect Supabase users by email", {
+          email,
+          error: error.message
+        });
+        return null;
+      }
+
+      const user = data.users.find((item) => normalizeEmail(item.email) === email);
+
+      if (user) {
+        return user.id;
+      }
+
+      if (data.users.length < perPage) {
+        return null;
+      }
     }
 
-    if (data.users.length < perPage) {
-      return null;
-    }
+    console.warn("[stripe-webhook] Supabase user lookup reached page limit", { email });
+
+    return null;
+  } catch (error) {
+    console.warn("[stripe-webhook] Unable to find Supabase user by email", {
+      email,
+      error: error instanceof Error ? error.message : String(error)
+    });
+
+    return null;
   }
-
-  console.warn("[stripe-webhook] Supabase user lookup reached page limit", { email });
-
-  return null;
 }
 
 async function findExistingUserIdForEmail(supabase: SupabaseServiceClient, email: string) {
-  return (await findProfileUserIdByEmail(supabase, email)) ?? (await findAuthUserIdByEmail(supabase, email));
+  return findAuthUserIdByEmail(supabase, email);
 }
 
 async function ensurePaidCheckoutUser(session: Stripe.Checkout.Session, plan: CheckoutPlanKey) {
@@ -233,7 +248,10 @@ async function upsertProfilePaymentStatus({
 async function syncCheckoutSession(session: Stripe.Checkout.Session) {
   const stripe = getStripe();
   const supabase = createServiceClient();
-  const plan = getPlanFromMetadataOrPrice(session.metadata?.plan, session.amount_total ? undefined : null);
+  const checkoutSessionPriceId = session.metadata?.plan
+    ? undefined
+    : (await stripe.checkout.sessions.retrieve(session.id, { expand: ["line_items"] })).line_items?.data[0]?.price?.id;
+  const plan = getPlanFromMetadataOrPrice(session.metadata?.plan, checkoutSessionPriceId);
   const stripeCustomerId = getStripeId(session.customer);
   const email = getCheckoutSessionEmail(session);
   const userId = await ensurePaidCheckoutUser(session, plan);

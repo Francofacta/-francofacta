@@ -2465,3 +2465,40 @@ td p {
     padding: 22px;
   }
 }
+
+/* Checkout email collection form */
+.checkout-email-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.checkout-email-form .input {
+  flex: 1;
+  min-width: 180px;
+  font-size: 0.9rem;
+  padding: 10px 14px;
+}
+
+/* Auth page links */
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.auth-links .link-button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.auth-links .link-button:hover {
+  color: var(--text);
+}

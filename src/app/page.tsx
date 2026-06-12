@@ -86,7 +86,7 @@ export default function Home() {
   useEffect(() => {
     const interval = window.setInterval(() => {
       setActiveScenarioIndex((current) => (current + 1) % heroScenarios.length);
-    }, 3600);
+    }, 5500);
 
     return () => window.clearInterval(interval);
   }, []);
@@ -137,7 +137,7 @@ export default function Home() {
             <div className="hero-proof" aria-label="Indicateurs produit">
               <span>Export PDF inclus</span>
               <span>Agenda + contacts</span>
-              <span>Stripe + Supabase</span>
+              <span>Paiement sécurisé</span>
             </div>
           </div>
 
