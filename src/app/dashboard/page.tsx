@@ -735,7 +735,10 @@ export default function DashboardPage() {
 
     if (file instanceof File && file.name && isSupabaseConfigured()) {
       const supabase = createClient();
-      const path = `${project.projectName.toLowerCase().replaceAll(" ", "-")}/${crypto.randomUUID()}-${file.name}`;
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+      const path = `${user?.id ?? "anonymous"}/${crypto.randomUUID()}-${file.name}`;
       const { error } = await supabase.storage.from("expense-receipts").upload(path, file);
 
       if (error) {

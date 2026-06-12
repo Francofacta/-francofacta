@@ -5,10 +5,34 @@ import { useState } from "react";
 import { LockKeyhole, Mail } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
+type AuthMode = "signin" | "signup" | "reset";
+
+const modeContent: Record<AuthMode, { title: string; message: string; submit: string; loading: string }> = {
+  signin: {
+    title: "Connexion",
+    message: "Connectez-vous pour synchroniser vos projets FrancoFacta.",
+    submit: "Se connecter",
+    loading: "Vérification..."
+  },
+  signup: {
+    title: "Créer un compte",
+    message: "Créez votre compte FrancoFacta avec votre email professionnel.",
+    submit: "Créer mon compte",
+    loading: "Création..."
+  },
+  reset: {
+    title: "Réinitialiser le mot de passe",
+    message: "Recevez un lien de réinitialisation sur votre email professionnel.",
+    submit: "Envoyer le lien",
+    loading: "Envoi..."
+  }
+};
+
 export default function AuthPage() {
+  const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("Connectez-vous pour synchroniser vos projets FrancoFacta.");
+  const [message, setMessage] = useState(modeContent.signin.message);
   const [loading, setLoading] = useState(false);
 
   function getRedirectTarget() {
@@ -21,6 +45,12 @@ export default function AuthPage() {
     return next;
   }
 
+  function switchMode(nextMode: AuthMode) {
+    setMode(nextMode);
+    setMessage(modeContent[nextMode].message);
+    setPassword("");
+  }
+
   async function submitAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -31,7 +61,12 @@ export default function AuthPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } =
+      mode === "signup"
+        ? await supabase.auth.signUp({ email, password })
+        : mode === "reset"
+          ? await supabase.auth.resetPasswordForEmail(email)
+          : await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (error) {
@@ -39,8 +74,25 @@ export default function AuthPage() {
       return;
     }
 
+    if (mode === "signup") {
+      if ("session" in data && data.session) {
+        window.location.href = getRedirectTarget();
+        return;
+      }
+
+      setMessage("Compte créé. Vérifiez votre boîte mail pour confirmer votre email.");
+      return;
+    }
+
+    if (mode === "reset") {
+      setMessage("Lien de réinitialisation envoyé si cet email existe.");
+      return;
+    }
+
     window.location.href = getRedirectTarget();
   }
+
+  const content = modeContent[mode];
 
   return (
     <main className="auth-page">
@@ -53,7 +105,7 @@ export default function AuthPage() {
           <LockKeyhole size={16} />
           Espace associé
         </span>
-        <h1>Connexion</h1>
+        <h1>{content.title}</h1>
         <p className="muted">{message}</p>
         <form className="auth-form" onSubmit={submitAuth}>
           <div className="form-field">
@@ -71,25 +123,35 @@ export default function AuthPage() {
               />
             </div>
           </div>
-          <div className="form-field">
-            <label htmlFor="password">Mot de passe</label>
-            <input
-              className="input"
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={8}
-              required
-            />
-          </div>
+          {mode !== "reset" ? (
+            <div className="form-field">
+              <label htmlFor="password">Mot de passe</label>
+              <input
+                className="input"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={8}
+                required
+              />
+            </div>
+          ) : null}
           <button className="button accent" type="submit" disabled={loading}>
-            {loading ? "Vérification..." : "Se connecter"}
+            {loading ? content.loading : content.submit}
           </button>
         </form>
-        <Link className="link-button" href="/#tarifs">
-          Pas encore de compte ? S&apos;inscrire
-        </Link>
+        <div className="auth-links">
+          <button className="link-button" type="button" onClick={() => switchMode("signin")} disabled={mode === "signin"}>
+            Se connecter
+          </button>
+          <button className="link-button" type="button" onClick={() => switchMode("signup")} disabled={mode === "signup"}>
+            Créer un compte
+          </button>
+          <button className="link-button" type="button" onClick={() => switchMode("reset")} disabled={mode === "reset"}>
+            Mot de passe oublié ?
+          </button>
+        </div>
       </section>
     </main>
   );
