@@ -2521,6 +2521,22 @@ td p {
     -webkit-overflow-scrolling: touch;
   }
 
+  .card:has(table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .card table {
+    min-width: 500px;
+    font-size: 0.82rem;
+  }
+
+  .card table th,
+  .card table td {
+    white-space: nowrap;
+    padding: 8px 10px;
+  }
+
   .expense-modal {
     padding: 22px;
   }
