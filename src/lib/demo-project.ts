@@ -56,59 +56,85 @@ export type ProjectDemoData = {
 
 export const noirmoutierDemo: ProjectDemoData = {
   id: "renovation-maison-noirmoutier",
-  name: "Rénovation Maison de Noirmoutier",
+  name: "Rénovation Maison — Noirmoutier",
   type: "Rénovation / Construction",
   currency: "EUR",
   endDate: "2026-10-30",
-  totalBudget: 125000,
+  totalBudget: 318300,
   members: [
-    { name: "Sophie", role: "Coordination artisans", color: "#008c8c", sharePercentage: 60 },
-    { name: "Marc", role: "Budget et achats", color: "#c94a1a", sharePercentage: 40 }
+    { name: "Élise", role: "Notaire & juridique", color: "#c94a1a", sharePercentage: 34 },
+    { name: "Hugo", role: "Travaux & chantier", color: "#008c8c", sharePercentage: 33 },
+    { name: "Marc", role: "Budget & achats", color: "#0f0f0f", sharePercentage: 33 }
   ],
   phases: [
-    { id: "permis", name: "Permis de construire", color: "#008c8c" },
-    { id: "demolition", name: "Démolition", color: "#0f0f0f" },
-    { id: "second-oeuvre", name: "Second œuvre", color: "#c94a1a" },
+    { id: "acquisition", name: "Acquisition bien", color: "#0f0f0f" },
+    { id: "notaire", name: "Frais notariés", color: "#008c8c" },
+    { id: "travaux", name: "Travaux rénovation", color: "#c94a1a" },
     { id: "finitions", name: "Finitions", color: "#5b21b6" }
   ],
   expenses: [
     {
       id: "n-e1",
       date: "2026-04-12",
-      title: "Acompte architecte",
-      category: "Honoraires",
-      phaseId: "permis",
-      member: "Sophie",
-      amount: 3200,
+      title: "Acte notarié — acquisition",
+      category: "Notaire",
+      phaseId: "notaire",
+      member: "Élise",
+      amount: 31800,
       status: "Payée",
       paymentMethod: "Virement",
-      receipt: "acompte-architecte.pdf",
+      receipt: "acte_notarie.pdf",
       receiptRequired: true
     },
     {
       id: "n-e2",
-      date: "2026-04-18",
-      title: "Démolition cloisons",
-      category: "Travaux",
-      phaseId: "demolition",
+      date: "2026-04-25",
+      title: "Permis de construire",
+      category: "Honoraires",
+      phaseId: "acquisition",
       member: "Marc",
-      amount: 1800,
-      status: "À rembourser",
+      amount: 2200,
+      status: "Payée",
       paymentMethod: "CB",
-      receipt: "facture-demolition-cloisons.pdf",
+      receipt: "permis-construire.pdf",
       receiptRequired: true
     },
     {
       id: "n-e3",
-      date: "2026-05-03",
-      title: "Fenêtres double vitrage",
-      category: "Matériaux",
-      phaseId: "second-oeuvre",
-      member: "Sophie",
-      amount: 4400,
+      date: "2026-05-10",
+      title: "Démolition cloisons étage",
+      category: "Travaux",
+      phaseId: "travaux",
+      member: "Hugo",
+      amount: 4800,
       status: "Payée",
       paymentMethod: "Virement",
-      receipt: "facture-fenetres-double-vitrage.pdf",
+      receipt: "facture-demolition.pdf",
+      receiptRequired: true
+    },
+    {
+      id: "n-e4",
+      date: "2026-05-28",
+      title: "Fenêtres double vitrage",
+      category: "Matériaux",
+      phaseId: "travaux",
+      member: "Hugo",
+      amount: 6400,
+      status: "À rembourser",
+      paymentMethod: "Virement",
+      receipt: "devis-fenetres.pdf",
+      receiptRequired: true
+    },
+    {
+      id: "n-e5",
+      date: "2026-06-05",
+      title: "Acompte cuisine équipée",
+      category: "Ameublement",
+      phaseId: "finitions",
+      member: "Marc",
+      amount: 3200,
+      status: "En validation",
+      paymentMethod: "CB",
       receiptRequired: true
     }
   ],
@@ -116,11 +142,11 @@ export const noirmoutierDemo: ProjectDemoData = {
     {
       id: "n-r1",
       date: "2026-08-01",
-      object: "Location saisonnière août - acompte",
+      object: "Location saisonnière août",
       client: "Famille Morel",
       amount: 4200,
       status: "Encaissé",
-      receipt: "acompte-location-aout.pdf",
+      receipt: "location-aout.pdf",
       receiptRequired: true
     },
     {
@@ -134,19 +160,21 @@ export const noirmoutierDemo: ProjectDemoData = {
     }
   ],
   tasks: [
-    { id: "n-t1", title: "Valider le planning avec l'architecte", done: true },
-    { id: "n-t2", title: "Confirmer la date de pose des fenêtres", done: false },
-    { id: "n-t3", title: "Classer les justificatifs de démolition", done: false }
+    { id: "n-t1", title: "Relancer le notaire pour l'attestation", done: true },
+    { id: "n-t2", title: "Envoyer devis plombier à Hugo", done: true },
+    { id: "n-t3", title: "Signer compromis assurance habitation", done: false },
+    { id: "n-t4", title: "Demander attestation décennale artisan", done: false },
+    { id: "n-t5", title: "Programmer visite chantier 15 juillet", done: false }
   ],
   contacts: [
-    { name: "Atelier Martin", role: "Maçonnerie", phone: "02 51 00 00 12" },
-    { name: "Claire Bonnet", role: "Architecte", phone: "06 42 18 09 77" },
-    { name: "Menuiserie Côte", role: "Menuiseries", phone: "02 51 00 14 30" }
+    { name: "Me Philippe Martin", role: "Notaire", phone: "01 42 60 15 30" },
+    { name: "Atelier Côte Ouest", role: "Maçonnerie", phone: "02 51 00 00 12" },
+    { name: "Claire Bonnet", role: "Architecte", phone: "06 42 18 09 77" }
   ],
   agenda: [
-    { date: "2026-07-12", title: "Réunion chantier second œuvre" },
-    { date: "2026-08-02", title: "Contrôle finitions avant ameublement" },
-    { date: "2026-09-15", title: "Ouverture location week-end test" }
+    { date: "2026-07-15", title: "Visite chantier avec architecte" },
+    { date: "2026-08-01", title: "Remise des clés locataire août" },
+    { date: "2026-09-20", title: "Point travaux finitions" }
   ]
 };
 
