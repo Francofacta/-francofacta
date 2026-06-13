@@ -2046,6 +2046,35 @@ td p {
 }
 
 @media (max-width: 768px) {
+  .dashboard-page {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  .dashboard-content {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    padding: 14px;
+    min-width: 0;
+  }
+
+  .dashboard-content > * {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-header h1 {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    word-break: break-word;
+  }
+
+  .member-kpi-banner {
+    max-width: calc(100vw - 28px);
+  }
+
   .section {
     padding: 56px 0;
   }
