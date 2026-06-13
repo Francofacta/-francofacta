@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { ArrowDownUp, CalendarDays, CheckSquare, FileText, Lock, Plus, ReceiptText, TrendingUp, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowDownUp, CalendarDays, CheckSquare, Eye, EyeOff, FileText, Lock, Plus, ReceiptText, TrendingUp, Users } from "lucide-react";
 import { noirmoutierDemo } from "@/lib/demo-project";
 
 const demoTabs = [
@@ -18,6 +18,33 @@ const demoTabs = [
   { label: "Rentabilité", href: "#rentability" }
 ];
 
+const vaultCards = [
+  {
+    id: "c1",
+    title: "Compte bancaire projet",
+    login: "sci-dupont@banque-postale.fr",
+    maskedPassword: "••••••••••••",
+    password: "Bp2026!secure",
+    url: "banque-postale.fr"
+  },
+  {
+    id: "c2",
+    title: "Espace cloud artisans",
+    login: "maison-noirmoutier",
+    maskedPassword: "••••••••",
+    password: "DriveNoir85!",
+    url: "drive.google.com"
+  },
+  {
+    id: "c3",
+    title: "Assurance habitation",
+    login: "dupont.elise@gmail.com",
+    maskedPassword: "••••••••••",
+    password: "Maif#2026nrm",
+    url: "maif.fr"
+  }
+] as const;
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: noirmoutierDemo.currency }).format(value);
 }
@@ -27,6 +54,7 @@ function formatDate(value: string) {
 }
 
 export default function DashboardDemoPage() {
+  const [visiblePasswords, setVisiblePasswords] = useState({ c1: false, c2: false, c3: false });
   const totalExpenses = noirmoutierDemo.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const pending = noirmoutierDemo.expenses
     .filter((expense) => expense.status === "À rembourser")
@@ -262,7 +290,65 @@ export default function DashboardDemoPage() {
             Coffre-fort
           </span>
           <h2>Accès partagés</h2>
-          <p className="muted demo-readonly">Compte bancaire projet, espace cloud artisans et assurance habitation.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+            {vaultCards.map((card) => {
+              const isVisible = visiblePasswords[card.id];
+              const Icon = isVisible ? EyeOff : Eye;
+
+              return (
+                <article
+                  key={card.id}
+                  style={{
+                    background: "var(--surface)",
+                    borderRadius: 16,
+                    padding: 20,
+                    border: "1px solid var(--border)"
+                  }}
+                >
+                  <strong style={{ display: "block", marginBottom: 18 }}>{card.title}</strong>
+                  <div style={{ display: "grid", gap: 14 }}>
+                    <div>
+                      <span className="muted" style={{ display: "block", fontSize: 12, marginBottom: 4 }}>
+                        Login
+                      </span>
+                      <span>{card.login}</span>
+                    </div>
+                    <div>
+                      <span className="muted" style={{ display: "block", fontSize: 12, marginBottom: 4 }}>
+                        Mot de passe
+                      </span>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <span>{isVisible ? card.password : card.maskedPassword}</span>
+                        <button
+                          type="button"
+                          aria-label={isVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                          aria-pressed={isVisible}
+                          onClick={() => setVisiblePasswords((current) => ({ ...current, [card.id]: !current[card.id] }))}
+                          style={{
+                            alignItems: "center",
+                            background: "transparent",
+                            border: "1px solid var(--border)",
+                            borderRadius: 999,
+                            color: "inherit",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            height: 36,
+                            justifyContent: "center",
+                            width: 36
+                          }}
+                        >
+                          <Icon size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <small className="muted" style={{ display: "block", marginTop: 18 }}>
+                    {card.url}
+                  </small>
+                </article>
+              );
+            })}
+          </div>
         </section>
 
         <section className="member-kpi-grid" aria-label="Agenda et contacts">
