@@ -53,16 +53,6 @@ function getCheckoutSessionEmail(session: Stripe.Checkout.Session) {
   return normalizeEmail(session.customer_details?.email ?? session.customer_email ?? session.metadata?.user_email);
 }
 
-function getInviteRedirectTo() {
-  const origin = process.env.NEXT_PUBLIC_APP_URL;
-
-  if (!origin) {
-    return undefined;
-  }
-
-  return new URL("/auth?next=/onboarding", origin).toString();
-}
-
 async function findProfileUserIdByEmail(supabase: SupabaseServiceClient, email: string) {
   const { data: profile } = await supabase
     .from("profiles")
@@ -151,26 +141,14 @@ async function ensurePaidCheckoutUser(session: Stripe.Checkout.Session, plan: Ch
     return existingUserByEmail;
   }
 
-  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: getInviteRedirectTo(),
-    data: {
-      plan,
-      stripe_customer_id: getStripeId(session.customer),
-      stripe_checkout_session_id: session.id
-    }
+  console.info("[stripe-webhook] Paid checkout has no Supabase user yet; awaiting /signup account creation", {
+    email,
+    stripe_checkout_session_id: session.id,
+    stripe_customer_id: getStripeId(session.customer),
+    plan
   });
 
-  if (error) {
-    console.warn("[stripe-webhook] Unable to create paid Supabase user invitation", {
-      email,
-      stripe_checkout_session_id: session.id,
-      error: error.message
-    });
-
-    return findExistingUserIdForEmail(supabase, email);
-  }
-
-  return data.user?.id ?? null;
+  return null;
 }
 
 async function findUserIdForStripeCustomer(stripeCustomerId: string | null, stripeSubscriptionId?: string | null) {

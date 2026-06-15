@@ -5,7 +5,7 @@ import { useState } from "react";
 import { LockKeyhole, Mail } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
-type AuthMode = "signin" | "signup" | "reset";
+type AuthMode = "signin" | "reset";
 
 const modeContent: Record<AuthMode, { title: string; message: string; submit: string; loading: string }> = {
   signin: {
@@ -13,12 +13,6 @@ const modeContent: Record<AuthMode, { title: string; message: string; submit: st
     message: "Connectez-vous pour synchroniser vos projets FrancoFacta.",
     submit: "Se connecter",
     loading: "Vérification..."
-  },
-  signup: {
-    title: "Créer un compte",
-    message: "Créez votre compte FrancoFacta avec votre email professionnel.",
-    submit: "Créer mon compte",
-    loading: "Création..."
   },
   reset: {
     title: "Réinitialiser le mot de passe",
@@ -61,26 +55,14 @@ export default function AuthPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { data, error } =
-      mode === "signup"
-        ? await supabase.auth.signUp({ email, password })
-        : mode === "reset"
-          ? await supabase.auth.resetPasswordForEmail(email)
-          : await supabase.auth.signInWithPassword({ email, password });
+    const { error } =
+      mode === "reset"
+        ? await supabase.auth.resetPasswordForEmail(email)
+        : await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (error) {
       setMessage(error.message);
-      return;
-    }
-
-    if (mode === "signup") {
-      if ("session" in data && data.session) {
-        window.location.href = getRedirectTarget();
-        return;
-      }
-
-      setMessage("Compte créé. Vérifiez votre boîte mail pour confirmer votre email.");
       return;
     }
 
@@ -145,9 +127,9 @@ export default function AuthPage() {
           <button className="link-button" type="button" onClick={() => switchMode("signin")} disabled={mode === "signin"}>
             Se connecter
           </button>
-          <button className="link-button" type="button" onClick={() => switchMode("signup")} disabled={mode === "signup"}>
+          <Link className="link-button" href="/pricing">
             Créer un compte
-          </button>
+          </Link>
           <button className="link-button" type="button" onClick={() => switchMode("reset")} disabled={mode === "reset"}>
             Mot de passe oublié ?
           </button>

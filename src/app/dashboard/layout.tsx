@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   if (!access.hasActivePaidPlan) {
-    redirect("/?payment=required#tarifs");
+    redirect("/pricing?payment=required");
   }
 
   return children;

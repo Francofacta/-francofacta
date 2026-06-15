@@ -16,7 +16,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
   }
 
   if (!access.hasActivePaidPlan) {
-    redirect(`/api/stripe/checkout?plan=starter&next=${encodeURIComponent("/onboarding")}`);
+    redirect("/pricing?payment=required");
   }
 
   return children;
