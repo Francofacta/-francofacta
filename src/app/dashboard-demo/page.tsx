@@ -445,7 +445,7 @@ export default function DashboardDemoPage() {
         </details>
       </nav>
 
-      <Link className="floating-demo-cta" href="/#tarifs">
+      <Link className="floating-demo-cta" href="/pricing">
         Commencer mon projet
       </Link>
     </main>

@@ -16,7 +16,7 @@ export default async function ProjectRoutesLayout({ children }: { children: Reac
   }
 
   if (!access.hasActivePaidPlan) {
-    redirect("/?payment=required#tarifs");
+    redirect("/pricing?payment=required");
   }
 
   return children;

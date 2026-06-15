@@ -1602,7 +1602,7 @@ export default function DashboardPage() {
               </span>
               <h2>Revenus</h2>
               <p className="muted">Disponible avec le plan Pro — passer à Pro.</p>
-              <Link className="button secondary" href="/#tarifs">
+              <Link className="button secondary" href="/pricing">
                 Voir le plan Pro
               </Link>
             </section>
@@ -1613,7 +1613,7 @@ export default function DashboardPage() {
               </span>
               <h2>Rentabilité projet</h2>
               <p className="muted">Disponible avec le plan Pro — passer à Pro.</p>
-              <Link className="button secondary" href="/#tarifs">
+              <Link className="button secondary" href="/pricing">
                 Voir le plan Pro
               </Link>
             </section>

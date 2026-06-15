@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, CircleDollarSign, FileText, HandCoins, PieChart, Users } from "lucide-react";
-import { CheckoutButton } from "@/components/CheckoutButton";
 import { pricingPlans } from "@/lib/pricing";
 
 const pains = [
@@ -103,7 +102,7 @@ export default function Home() {
           </Link>
           <div className="nav-links">
             <Link href="#fonctionnement">Fonctionnement</Link>
-            <Link href="#tarifs">Tarifs</Link>
+            <Link href="/pricing">Tarifs</Link>
             <Link href="/dashboard-demo">Démo dashboard</Link>
           </div>
           <Link className="button secondary nav-cta" href="/auth">
@@ -122,14 +121,15 @@ export default function Home() {
             </p>
             <p className="hero-tagline">Vos projets méritent mieux qu&apos;un Excel partagé et un groupe WhatsApp.</p>
             <div className="hero-actions">
-              <CheckoutButton plan="starter" variant="accent">
+              <Link className="button accent" href="/pricing">
                 Démarrer avec Starter
-              </CheckoutButton>
+                <ArrowUpRight size={18} />
+              </Link>
               <Link className="button secondary" href="/dashboard-demo">
                 Voir le dashboard
                 <ArrowUpRight size={18} />
               </Link>
-              <Link className="button secondary" href="#tarifs">
+              <Link className="button secondary" href="/pricing">
                 Choisir un plan
                 <ArrowUpRight size={18} />
               </Link>
@@ -243,9 +243,10 @@ export default function Home() {
                   <span>{persoPlan.priceLabel}</span>
                   <small>paiement unique</small>
                 </div>
-                <CheckoutButton plan="perso" variant="accent">
+                <Link className="button accent" href="/pricing">
                   {persoPlan.ctaLabel}
-                </CheckoutButton>
+                  <ArrowUpRight size={18} />
+                </Link>
               </div>
             </article>
           ) : null}
@@ -284,9 +285,10 @@ export default function Home() {
                     <ArrowUpRight size={18} />
                   </Link>
                 ) : (
-                  <CheckoutButton plan={plan.key} variant={plan.highlight ? "accent" : "secondary"}>
+                  <Link className={`button ${plan.highlight ? "accent" : "secondary"}`} href="/pricing">
                     {plan.ctaLabel}
-                  </CheckoutButton>
+                    <ArrowUpRight size={18} />
+                  </Link>
                 )}
               </article>
             ))}
@@ -302,9 +304,10 @@ export default function Home() {
             Lancez FrancoFacta, configurez votre premier projet et invitez les partenaires qui avancent les dépenses.
           </p>
           <div className="hero-actions">
-            <CheckoutButton plan="starter" variant="accent">
+            <Link className="button accent" href="/pricing">
               Choisir Starter
-            </CheckoutButton>
+              <ArrowUpRight size={18} />
+            </Link>
             <Link className="button secondary" href="/dashboard-demo">
               Voir le tableau de bord
             </Link>

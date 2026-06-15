@@ -11,11 +11,9 @@ type CheckoutButtonProps = {
 };
 
 export function CheckoutButton({ plan, children, variant = "primary" }: CheckoutButtonProps) {
-  const [status, setStatus] = useState<"idle" | "collecting" | "loading" | "error">("idle");
-  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
 
-  async function startCheckout(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function startCheckout() {
     setStatus("loading");
 
     try {
@@ -24,7 +22,7 @@ export function CheckoutButton({ plan, children, variant = "primary" }: Checkout
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ plan, email })
+        body: JSON.stringify({ plan })
       });
       const payload = (await response.json()) as { url?: string; error?: string };
 
@@ -40,44 +38,19 @@ export function CheckoutButton({ plan, children, variant = "primary" }: Checkout
       throw new Error("Session Stripe indisponible.");
     } catch {
       setStatus("error");
-      window.location.href = "/?checkout=error#tarifs";
+      window.location.href = "/pricing?checkout=error";
     }
-  }
-
-  if (status === "collecting" || status === "loading") {
-    return (
-      <form className="checkout-email-form" onSubmit={startCheckout}>
-        <input
-          className="input"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="votre@email.fr"
-          aria-label="Email pour le paiement Stripe"
-          required
-          disabled={status === "loading"}
-        />
-        <button
-          className={`button ${variant === "secondary" ? "secondary" : variant === "accent" ? "accent" : ""}`}
-          type="submit"
-          disabled={status === "loading"}
-          aria-live="polite"
-        >
-          {status === "loading" ? "Ouverture de Stripe..." : "Continuer"}
-          <ArrowRight size={18} />
-        </button>
-      </form>
-    );
   }
 
   return (
     <button
       className={`button ${variant === "secondary" ? "secondary" : variant === "accent" ? "accent" : ""}`}
       type="button"
-      onClick={() => setStatus("collecting")}
+      onClick={startCheckout}
+      disabled={status === "loading"}
       aria-live="polite"
     >
-      {status === "error" ? "Réessayer" : children}
+      {status === "loading" ? "Ouverture de Stripe..." : status === "error" ? "Réessayer" : children}
       <ArrowRight size={18} />
     </button>
   );
