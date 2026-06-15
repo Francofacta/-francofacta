@@ -55,10 +55,10 @@ export default function AuthPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { data, error } =
+    const { error } =
       mode === "reset"
-          ? await supabase.auth.resetPasswordForEmail(email)
-          : await supabase.auth.signInWithPassword({ email, password });
+        ? await supabase.auth.resetPasswordForEmail(email)
+        : await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (error) {

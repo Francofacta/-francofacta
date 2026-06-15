@@ -78,8 +78,8 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
     planExpiresAt,
     trialEnd: subscription?.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
     priceId: session.line_items?.data[0]?.price?.id ?? null,
-    paidAt: new Date().toISOString(),
-    exp: Math.floor(Date.now() / 1000) + 30 * 60
+    paidAt: new Date(session.created * 1000).toISOString(),
+    exp: session.created + 30 * 24 * 60 * 60
   });
 
   return (
