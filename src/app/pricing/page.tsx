@@ -19,7 +19,7 @@ export default function PricingPage() {
             <Link href="/#fonctionnement">Fonctionnement</Link>
             <Link href="/dashboard-demo">Démo dashboard</Link>
           </div>
-          <Link className="button secondary nav-cta" href="/auth">
+          <Link className="button secondary nav-cta" href="/login">
             Connexion
           </Link>
         </nav>

@@ -53,10 +53,6 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const plan = getCheckoutSessionPlan(session);
   const email = getCheckoutSessionEmail(session) ?? "";
 
-  if (!email) {
-    redirect("/pricing");
-  }
-
   const subscription = typeof session.subscription === "object" ? session.subscription : null;
   const currentPeriodEnd = subscription ? getSubscriptionPeriodEnd(subscription) : null;
   const planExpiresAt =
@@ -91,7 +87,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       <section className="card auth-card">
         <span className="eyebrow">
           <CheckCircle2 size={16} />
-          Paiement confirmé
+          Espace membre
         </span>
         <h1>Créer un compte</h1>
         <SignupForm sessionId={session.id} paymentProof={paymentProof} initialEmail={email} plan={plan} />

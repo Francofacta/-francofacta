@@ -38,6 +38,7 @@ export const config = {
     "/dashboard/:path*",
     "/onboarding/:path*",
     "/projet/:path*",
+    "/login",
     "/auth",
     "/api/onboarding",
     "/api/invitations"

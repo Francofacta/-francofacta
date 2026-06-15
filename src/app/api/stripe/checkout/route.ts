@@ -15,10 +15,7 @@ function buildUrl(origin: string, path: string) {
 }
 
 function getSignupSuccessUrl(origin: string) {
-  const url = new URL("/signup", origin);
-  url.searchParams.set("session_id", "{CHECKOUT_SESSION_ID}");
-
-  return url.toString();
+  return `${buildUrl(origin, "/signup")}?session_id={CHECKOUT_SESSION_ID}`;
 }
 
 async function createCheckoutUrl(request: Request, plan: CheckoutPlanKey) {

@@ -130,7 +130,7 @@ export function getSafeNextPath(nextPath: string | null | undefined, fallback = 
 }
 
 export function getAuthRedirectPath(nextPath: string) {
-  return `/auth?next=${encodeURIComponent(getSafeNextPath(nextPath))}`;
+  return `/login?next=${encodeURIComponent(getSafeNextPath(nextPath))}`;
 }
 
 export async function auditExistingDashboardAccessWithoutPayment(source: string) {
