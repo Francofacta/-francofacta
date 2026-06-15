@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { LockKeyhole, Mail } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AuthMode = "signin" | "reset";
@@ -26,6 +26,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState(modeContent.signin.message);
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +44,7 @@ export default function AuthPage() {
     setMode(nextMode);
     setMessage(modeContent[nextMode].message);
     setPassword("");
+    setShowPassword(false);
   }
 
   async function submitAuth(event: React.FormEvent<HTMLFormElement>) {
@@ -85,7 +87,7 @@ export default function AuthPage() {
       <section className="card auth-card">
         <span className="eyebrow">
           <LockKeyhole size={16} />
-          Espace associé
+          Espace membre
         </span>
         <h1>{content.title}</h1>
         <p className="muted">{message}</p>
@@ -108,15 +110,26 @@ export default function AuthPage() {
           {mode !== "reset" ? (
             <div className="form-field">
               <label htmlFor="password">Mot de passe</label>
-              <input
-                className="input"
-                id="password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                minLength={8}
-                required
-              />
+              <div className="input-icon password-input">
+                <LockKeyhole size={18} />
+                <input
+                  className="input"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+                <button
+                  className="password-toggle"
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
           ) : null}
           <button className="button accent" type="submit" disabled={loading}>
