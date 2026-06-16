@@ -57,19 +57,25 @@ export default function AuthPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { error } =
-      mode === "reset"
-        ? await supabase.auth.resetPasswordForEmail(email)
-        : await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
 
-    if (error) {
-      setMessage(error.message);
+    if (mode === "reset") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      setLoading(false);
+
+      if (error) {
+        setMessage(error.message);
+        return;
+      }
+
+      setMessage("Lien de réinitialisation envoyé si cet email existe.");
       return;
     }
 
-    if (mode === "reset") {
-      setMessage("Lien de réinitialisation envoyé si cet email existe.");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setLoading(false);
+      setMessage(error.message);
       return;
     }
 
