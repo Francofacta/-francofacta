@@ -34,6 +34,7 @@ export function SignupForm({ initialEmail, plan, sessionId }: SignupFormProps) {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
           data: {
             plan,
             ...(sessionId ? { session_id: sessionId } : {})
@@ -50,7 +51,7 @@ export function SignupForm({ initialEmail, plan, sessionId }: SignupFormProps) {
         return;
       }
 
-      setMessage("Compte créé. Vérifiez votre boîte mail pour confirmer votre email, puis connectez-vous.");
+      setMessage("Compte créé. Vérifiez votre boîte mail pour confirmer votre email et accéder à l'onboarding.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Création de compte indisponible.");
     } finally {
