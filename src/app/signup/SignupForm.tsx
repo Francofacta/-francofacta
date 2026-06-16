@@ -6,33 +6,16 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { CheckoutPlanKey } from "@/lib/pricing";
 
 type SignupFormProps = {
-  sessionId: string;
-  paymentProof: string;
   initialEmail: string;
   plan: CheckoutPlanKey;
 };
 
-export function SignupForm({ sessionId, paymentProof, initialEmail, plan }: SignupFormProps) {
+export function SignupForm({ initialEmail, plan }: SignupFormProps) {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("Paiement confirmé. Créez votre compte pour accéder à l'onboarding.");
   const [loading, setLoading] = useState(false);
-
-  async function completeSignupPaymentLink() {
-    const response = await fetch("/api/signup/complete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ session_id: sessionId, payment_proof: paymentProof })
-    });
-    const payload = (await response.json()) as { error?: string };
-
-    if (!response.ok) {
-      throw new Error(payload.error ?? "Paiement confirmé, mais rattachement du compte indisponible.");
-    }
-  }
 
   async function submitSignup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,8 +34,7 @@ export function SignupForm({ sessionId, paymentProof, initialEmail, plan }: Sign
         password,
         options: {
           data: {
-            plan,
-            stripe_checkout_session_id: sessionId
+            plan
           }
         }
       });
@@ -62,7 +44,6 @@ export function SignupForm({ sessionId, paymentProof, initialEmail, plan }: Sign
       }
 
       if (data.session) {
-        await completeSignupPaymentLink();
         window.location.href = "/onboarding";
         return;
       }

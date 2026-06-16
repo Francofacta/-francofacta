@@ -2,13 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import {
-  addMonths,
   getCheckoutSessionEmail,
   getCheckoutSessionPlan,
-  getStripeId,
-  getSubscriptionPeriodEnd
 } from "@/lib/stripe-checkout";
-import { createSignupPaymentProof } from "@/lib/signup-payment-proof";
 import { getStripe } from "@/lib/stripe";
 import { SignupForm } from "./SignupForm";
 
@@ -53,31 +49,6 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const plan = getCheckoutSessionPlan(session);
   const email = getCheckoutSessionEmail(session) ?? "";
 
-  const subscription = typeof session.subscription === "object" ? session.subscription : null;
-  const currentPeriodEnd = subscription ? getSubscriptionPeriodEnd(subscription) : null;
-  const planExpiresAt =
-    session.mode === "subscription"
-      ? currentPeriodEnd
-        ? new Date(currentPeriodEnd * 1000).toISOString()
-        : null
-      : addMonths(new Date(session.created * 1000), 12).toISOString();
-  const paymentProof = createSignupPaymentProof({
-    sessionId: session.id,
-    plan,
-    email: email || null,
-    stripeCustomerId: getStripeId(session.customer),
-    stripeSubscriptionId: getStripeId(session.subscription),
-    stripePaymentIntentId: getStripeId(session.payment_intent),
-    mode: session.mode,
-    paymentStatus: session.payment_status,
-    status: session.mode === "subscription" ? (subscription?.status ?? "active") : "paid",
-    planExpiresAt,
-    trialEnd: subscription?.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-    priceId: session.line_items?.data[0]?.price?.id ?? null,
-    paidAt: new Date(session.created * 1000).toISOString(),
-    exp: session.created + 30 * 24 * 60 * 60
-  });
-
   return (
     <main className="auth-page">
       <Link href="/" className="brand auth-brand">
@@ -90,7 +61,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           Espace membre
         </span>
         <h1>Créer un compte</h1>
-        <SignupForm sessionId={session.id} paymentProof={paymentProof} initialEmail={email} plan={plan} />
+        <SignupForm initialEmail={email} plan={plan} />
       </section>
     </main>
   );
