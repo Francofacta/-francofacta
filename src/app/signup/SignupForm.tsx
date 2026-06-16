@@ -8,13 +8,14 @@ import type { CheckoutPlanKey } from "@/lib/pricing";
 type SignupFormProps = {
   initialEmail: string;
   plan: CheckoutPlanKey;
+  sessionId: string;
 };
 
-export function SignupForm({ initialEmail, plan }: SignupFormProps) {
+export function SignupForm({ initialEmail, plan, sessionId }: SignupFormProps) {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("Paiement confirmé. Créez votre compte pour accéder à l'onboarding.");
+  const [message, setMessage] = useState("Créez votre compte pour accéder à l'onboarding.");
   const [loading, setLoading] = useState(false);
 
   async function submitSignup(event: React.FormEvent<HTMLFormElement>) {
@@ -34,7 +35,8 @@ export function SignupForm({ initialEmail, plan }: SignupFormProps) {
         password,
         options: {
           data: {
-            plan
+            plan,
+            ...(sessionId ? { session_id: sessionId } : {})
           }
         }
       });

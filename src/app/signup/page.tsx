@@ -1,53 +1,33 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import {
-  getCheckoutSessionEmail,
-  getCheckoutSessionPlan,
-} from "@/lib/stripe-checkout";
-import { getStripe } from "@/lib/stripe";
+import { isCheckoutPlanKey, type CheckoutPlanKey } from "@/lib/pricing";
 import { SignupForm } from "./SignupForm";
 
 type SignupPageProps = {
   searchParams: Promise<{
-    session_id?: string;
+    session_id?: string | string[];
+    plan?: string | string[];
+    email?: string | string[];
   }>;
 };
 
-function isCheckoutSessionId(value: string | undefined): value is string {
-  return Boolean(value && value.startsWith("cs_"));
+function getFirstSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
-async function getPaidCheckoutSession(sessionId: string) {
-  try {
-    const stripe = getStripe();
-    const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["line_items", "subscription"] });
+function normalizeEmail(value: string | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
 
-    if (session.payment_status !== "paid") {
-      return null;
-    }
-
-    return session;
-  } catch {
-    return null;
-  }
+function getSignupPlan(value: string | undefined): CheckoutPlanKey {
+  return isCheckoutPlanKey(value) ? value : "starter";
 }
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
-  const { session_id: sessionId } = await searchParams;
-
-  if (!isCheckoutSessionId(sessionId)) {
-    redirect("/pricing");
-  }
-
-  const session = await getPaidCheckoutSession(sessionId);
-
-  if (!session) {
-    redirect("/pricing");
-  }
-
-  const plan = getCheckoutSessionPlan(session);
-  const email = getCheckoutSessionEmail(session) ?? "";
+  const params = await searchParams;
+  const sessionId = getFirstSearchParam(params.session_id) ?? "";
+  const plan = getSignupPlan(getFirstSearchParam(params.plan));
+  const email = normalizeEmail(getFirstSearchParam(params.email));
 
   return (
     <main className="auth-page">
@@ -61,7 +41,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           Espace membre
         </span>
         <h1>Créer un compte</h1>
-        <SignupForm initialEmail={email} plan={plan} />
+        <SignupForm initialEmail={email} plan={plan} sessionId={sessionId} />
       </section>
     </main>
   );
