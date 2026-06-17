@@ -6,7 +6,6 @@ import { SignupForm } from "./SignupForm";
 type SignupPageProps = {
   searchParams: Promise<{
     session_id?: string | string[];
-    payment_proof?: string | string[];
     plan?: string | string[];
     email?: string | string[];
   }>;
@@ -27,7 +26,6 @@ function getSignupPlan(value: string | undefined): CheckoutPlanKey {
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams;
   const sessionId = getFirstSearchParam(params.session_id) ?? "";
-  const paymentProof = getFirstSearchParam(params.payment_proof) ?? "";
   const plan = getSignupPlan(getFirstSearchParam(params.plan));
   const email = normalizeEmail(getFirstSearchParam(params.email));
 
@@ -43,7 +41,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           Espace membre
         </span>
         <h1>Créer un compte</h1>
-        <SignupForm initialEmail={email} plan={plan} sessionId={sessionId} paymentProof={paymentProof} />
+        <SignupForm initialEmail={email} plan={plan} sessionId={sessionId} />
       </section>
     </main>
   );

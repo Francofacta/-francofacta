@@ -9,10 +9,9 @@ type SignupFormProps = {
   initialEmail: string;
   plan: CheckoutPlanKey;
   sessionId: string;
-  paymentProof: string;
 };
 
-export function SignupForm({ initialEmail, plan, sessionId, paymentProof }: SignupFormProps) {
+export function SignupForm({ initialEmail, plan, sessionId }: SignupFormProps) {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -48,22 +47,6 @@ export function SignupForm({ initialEmail, plan, sessionId, paymentProof }: Sign
       }
 
       if (data.session) {
-        const completeResponse = await fetch("/api/signup/complete", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            session_id: sessionId,
-            payment_proof: paymentProof
-          })
-        });
-
-        if (!completeResponse.ok) {
-          const body = (await completeResponse.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(body?.error ?? "Impossible de rattacher votre paiement au compte.");
-        }
-
         window.location.href = "/onboarding";
         return;
       }
