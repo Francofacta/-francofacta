@@ -18,6 +18,27 @@ export function SignupForm({ initialEmail, plan, sessionId }: SignupFormProps) {
   const [message, setMessage] = useState("Créez votre compte pour accéder à l'onboarding.");
   const [loading, setLoading] = useState(false);
 
+  async function completeSignupPaymentLink() {
+    if (!sessionId) {
+      throw new Error("Session Stripe manquante. Relancez le paiement depuis la page tarifs.");
+    }
+
+    setMessage("Compte créé. Rattachement de votre paiement...");
+
+    const response = await fetch("/api/signup/complete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ session_id: sessionId })
+    });
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      throw new Error(payload?.error ?? "Paiement confirmé, mais rattachement du compte indisponible.");
+    }
+  }
+
   async function submitSignup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -47,6 +68,7 @@ export function SignupForm({ initialEmail, plan, sessionId }: SignupFormProps) {
       }
 
       if (data.session) {
+        await completeSignupPaymentLink();
         window.location.href = "/onboarding";
         return;
       }
