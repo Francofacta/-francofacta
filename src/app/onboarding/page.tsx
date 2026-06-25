@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Plus, Trash2 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type ProjectType = {
   key: string;
@@ -284,8 +285,7 @@ export default function OnboardingPage() {
     <main className="onboarding-page">
       <header className="container onboarding-header">
         <Link href="/" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
         <Link className="button secondary" href="/dashboard-demo">
           Voir le dashboard

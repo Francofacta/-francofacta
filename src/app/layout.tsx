@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "FrancoFacta | Suivi de dépenses entre associés",
+  title: "Cashflux | Suivi de dépenses entre associés",
   description:
     "SaaS français pour suivre les dépenses de projet, équilibrer les avances et piloter les remboursements entre associés de TPE.",
   metadataBase: new URL("https://francofacta.vercel.app"),
@@ -27,6 +27,12 @@ export const metadata: Metadata = {
         type: "image/svg+xml"
       }
     ]
+  },
+  openGraph: {
+    title: "Cashflux | Suivi de dépenses entre associés",
+    description:
+      "SaaS français pour suivre les dépenses de projet, équilibrer les avances et piloter les remboursements entre associés de TPE.",
+    siteName: "Cashflux"
   }
 };
 
@@ -37,6 +43,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      </head>
       <body className={`${inter.variable} ${playfair.variable}`}>
         {children}
         <LegalFooter />

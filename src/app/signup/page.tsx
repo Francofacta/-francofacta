@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { isCheckoutPlanKey, type CheckoutPlanKey } from "@/lib/pricing";
 import { SignupForm } from "./SignupForm";
 
@@ -32,8 +33,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   return (
     <main className="auth-page">
       <Link href="/" className="brand auth-brand">
-        <span>F</span>
-        FrancoFacta
+        <BrandLogo />
       </Link>
       <section className="card auth-card">
         <span className="eyebrow">

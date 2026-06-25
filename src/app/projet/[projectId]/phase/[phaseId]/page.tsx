@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { FileText, Plus, ReceiptText } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { noirmoutierDemo, type Expense, type Member, type Phase } from "@/lib/demo-project";
 
 type StoredProject = {
@@ -161,8 +162,7 @@ export default function PhaseDetailPage() {
     <main className="phase-detail-page">
       <section className="container phase-detail-shell">
         <Link href={backHref} className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
 
         <article className="card phase-detail-card">

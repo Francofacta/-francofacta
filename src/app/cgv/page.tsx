@@ -1,12 +1,12 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function CgvPage() {
   return (
     <main className="legal-page">
       <section className="container card legal-card">
         <Link href="/" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
         <span className="eyebrow">Conditions générales</span>
         <h1>CGV</h1>
@@ -28,11 +28,11 @@ export default function CgvPage() {
           <h2>Droit de rétractation et remboursement</h2>
           <p>
             Le client dispose d&apos;un droit de rétractation de 14 jours. Les demandes de remboursement sont étudiées via le
-            support FrancoFacta.
+            support Cashflux.
           </p>
 
           <h2>Contact</h2>
-          <p>Pour toute question : francofacta@outlook.fr.</p>
+          <p>Pour toute question : cashflux@outlook.fr.</p>
         </div>
       </section>
     </main>

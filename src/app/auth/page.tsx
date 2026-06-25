@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AuthMode = "signin" | "reset";
@@ -10,7 +11,7 @@ type AuthMode = "signin" | "reset";
 const modeContent: Record<AuthMode, { title: string; message: string; submit: string; loading: string }> = {
   signin: {
     title: "Connexion",
-    message: "Connectez-vous pour synchroniser vos projets FrancoFacta.",
+    message: "Connectez-vous pour synchroniser vos projets Cashflux.",
     submit: "Se connecter",
     loading: "Vérification..."
   },
@@ -87,8 +88,7 @@ export default function AuthPage() {
   return (
     <main className="auth-page">
       <Link href="/" className="brand auth-brand">
-        <span>F</span>
-        FrancoFacta
+        <BrandLogo />
       </Link>
       <section className="card auth-card">
         <span className="eyebrow">

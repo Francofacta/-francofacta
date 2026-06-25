@@ -1,22 +1,22 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function MentionsLegalesPage() {
   return (
     <main className="legal-page">
       <section className="container card legal-card">
         <Link href="/" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
         <span className="eyebrow">Mentions légales</span>
         <h1>Mentions légales</h1>
         <div className="legal-content">
           <h2>Éditeur</h2>
           <p>
-            FrancoFacta est édité par Aghilas AISSAT, Entrepreneur individuel, SIREN 994902070, 22 Rue Pascal 93110
+            Cashflux est édité par Aghilas AISSAT, Entrepreneur individuel, SIREN 994902070, 22 Rue Pascal 93110
             Rosny-sous-Bois.
           </p>
-          <p>Contact : francofacta@outlook.fr</p>
+          <p>Contact : cashflux@outlook.fr</p>
 
           <h2>Hébergement</h2>
           <p>Application hébergée par Vercel Inc.</p>

@@ -260,18 +260,6 @@ th {
   font-weight: 900;
 }
 
-.brand span {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: var(--primary);
-  color: #fff;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.35rem;
-}
-
 .nav-links {
   display: flex;
   align-items: center;
@@ -661,7 +649,13 @@ th {
   gap: 18px;
 }
 
-.legal-footer span,
+.legal-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legal-footer-brand > span,
 .legal-footer a {
   color: var(--muted);
   font-size: 0.9rem;

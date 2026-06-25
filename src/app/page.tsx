@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, CircleDollarSign, FileText, HandCoins, PieChart, Users } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { pricingPlans } from "@/lib/pricing";
 
 const pains = [
@@ -97,8 +98,7 @@ export default function Home() {
       <header className="site-header">
         <nav className="container nav">
           <Link href="/" className="brand">
-            <span>F</span>
-            FrancoFacta
+            <BrandLogo />
           </Link>
           <div className="nav-links">
             <Link href="#fonctionnement">Fonctionnement</Link>
@@ -117,7 +117,7 @@ export default function Home() {
             <span className="hero-audience-badge">Pour vos projets à plusieurs</span>
             <h1>Entre potes, époux ou associés — reprenez le contrôle.</h1>
             <p className="hero-subtitle">
-              Qui a avancé quoi ? Qui rembourse qui ? Où est le justificatif ? FrancoFacta répond à tout — en temps réel.
+              Qui a avancé quoi ? Qui rembourse qui ? Où est le justificatif ? Cashflux répond à tout — en temps réel.
             </p>
             <p className="hero-tagline">Vos projets méritent mieux qu&apos;un Excel partagé et un groupe WhatsApp.</p>
             <div className="hero-actions">
@@ -141,7 +141,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="card hero-card" aria-label="Aperçu FrancoFacta">
+          <div className="card hero-card" aria-label="Aperçu Cashflux">
             <div className="browser-bar">
               <span />
               <span />
@@ -185,7 +185,7 @@ export default function Home() {
       <section className="section" id="douleurs">
         <div className="container">
           <div className="section-heading">
-            <span className="eyebrow">Ce que FrancoFacta résout</span>
+            <span className="eyebrow">Ce que Cashflux résout</span>
             <h2>Moins de frictions, plus de confiance entre partenaires.</h2>
           </div>
           <div className="pain-grid">
@@ -301,7 +301,7 @@ export default function Home() {
           <Users size={32} />
           <h2>Remettez vos associés autour du même chiffre.</h2>
           <p>
-            Lancez FrancoFacta, configurez votre premier projet et invitez les partenaires qui avancent les dépenses.
+            Lancez Cashflux, configurez votre premier projet et invitez les partenaires qui avancent les dépenses.
           </p>
           <div className="hero-actions">
             <Link className="button accent" href="/pricing">

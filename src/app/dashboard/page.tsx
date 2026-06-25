@@ -17,6 +17,7 @@ import {
   Users,
   X
 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ghostExpenses } from "@/lib/demo-project";
 
@@ -226,7 +227,7 @@ const initialCredentials: Credential[] = [
   {
     id: "c1",
     serviceName: "Compte bancaire projet",
-    login: "finance@francofacta.demo",
+    login: "finance@cashflux.demo",
     password: "••••••••••••",
     url: "https://banque.example"
   },
@@ -869,8 +870,7 @@ export default function DashboardPage() {
     <main className="dashboard-page">
       <aside className="sidebar">
         <Link href="/" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
         <nav className="sidebar-nav">
           {sidebarTabs.map((tab) => {
