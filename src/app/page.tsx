@@ -114,12 +114,9 @@ export default function Home() {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="hero-audience-badge">Pour vos projets à plusieurs</span>
+            <span className="hero-audience-badge">Centralisez, tracez et maîtrisez chaque euro de vos projets.</span>
             <h1>Entre potes, époux ou associés — reprenez le contrôle.</h1>
-            <p className="hero-subtitle">
-              Qui a avancé quoi ? Qui rembourse qui ? Où est le justificatif ? Cashflux répond à tout — en temps réel.
-            </p>
-            <p className="hero-tagline">Vos projets méritent mieux qu&apos;un Excel partagé et un groupe WhatsApp.</p>
+            <p className="hero-subtitle">La rentabilité, si vous le souhaitez.</p>
             <div className="hero-actions">
               <Link className="button accent" href="/pricing">
                 Démarrer avec Starter
@@ -127,10 +124,6 @@ export default function Home() {
               </Link>
               <Link className="button secondary" href="/dashboard-demo">
                 Voir le dashboard
-                <ArrowUpRight size={18} />
-              </Link>
-              <Link className="button secondary" href="/pricing">
-                Choisir un plan
                 <ArrowUpRight size={18} />
               </Link>
             </div>
