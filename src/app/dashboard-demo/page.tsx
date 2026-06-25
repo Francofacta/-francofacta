@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowDownUp, CalendarDays, CheckSquare, Eye, EyeOff, FileText, Lock, Plus, ReceiptText, TrendingUp, Users } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { noirmoutierDemo } from "@/lib/demo-project";
 
 const demoTabs = [
@@ -76,8 +77,7 @@ export default function DashboardDemoPage() {
     <main className="dashboard-page demo-dashboard-page">
       <aside className="sidebar">
         <Link href="/" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
         <nav className="sidebar-nav">
           {demoTabs.map((tab) => (

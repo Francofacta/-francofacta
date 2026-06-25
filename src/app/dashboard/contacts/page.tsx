@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Plus, Users } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function DashboardContactsPage() {
   return (
     <main className="module-placeholder-page">
       <section className="container module-placeholder-shell">
         <Link href="/dashboard#contacts" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
 
         <article className="card module-placeholder-card">

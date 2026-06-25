@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "./BrandLogo";
 
 const legalLinks = [
   { href: "/mentions-legales", label: "Mentions légales" },
@@ -10,7 +11,10 @@ export function LegalFooter() {
   return (
     <footer className="legal-footer">
       <div className="container legal-footer-inner">
-        <span>© FrancoFacta</span>
+        <div className="legal-footer-brand">
+          <span>©</span>
+          <BrandLogo />
+        </div>
         <nav aria-label="Liens légaux">
           {legalLinks.map((link) => (
             <Link href={link.href} key={link.href}>

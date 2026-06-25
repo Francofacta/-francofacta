@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { CalendarDays, Plus } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function DashboardAgendaPage() {
   return (
     <main className="module-placeholder-page">
       <section className="container module-placeholder-shell">
         <Link href="/dashboard#agenda" className="brand">
-          <span>F</span>
-          FrancoFacta
+          <BrandLogo />
         </Link>
 
         <article className="card module-placeholder-card">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, CheckCircle2, CircleDollarSign } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { pricingPlans } from "@/lib/pricing";
 
@@ -12,8 +13,7 @@ export default function PricingPage() {
       <header className="site-header">
         <nav className="container nav">
           <Link href="/" className="brand">
-            <span>F</span>
-            FrancoFacta
+            <BrandLogo />
           </Link>
           <div className="nav-links">
             <Link href="/#fonctionnement">Fonctionnement</Link>
@@ -34,7 +34,7 @@ export default function PricingPage() {
             </span>
             <h1>Choisissez votre plan avant de créer votre compte.</h1>
             <p className="muted">
-              Le paiement sécurisé Stripe débloque ensuite la création de compte FrancoFacta et l&apos;onboarding.
+              Le paiement sécurisé Stripe débloque ensuite la création de compte Cashflux et l&apos;onboarding.
             </p>
           </div>
 
