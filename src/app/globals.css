@@ -306,8 +306,8 @@ th {
 .hero-copy h1 {
   max-width: 820px;
   margin-bottom: 0;
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
-  line-height: 0.9;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 0.95;
 }
 
 .hero-copy p {
