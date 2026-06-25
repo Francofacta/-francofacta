@@ -49,7 +49,8 @@ button {
 }
 
 .container {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1120px, 100%);
+  padding-inline: clamp(1.5rem, 5vw, 4rem);
   margin: 0 auto;
 }
 
@@ -260,6 +261,11 @@ th {
   font-weight: 900;
 }
 
+.nav .brand svg {
+  width: auto;
+  height: 36px;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -300,7 +306,7 @@ th {
 .hero-copy h1 {
   max-width: 820px;
   margin-bottom: 0;
-  font-size: clamp(3.4rem, 8vw, 7rem);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
   line-height: 0.9;
 }
 
