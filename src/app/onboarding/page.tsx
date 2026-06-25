@@ -162,7 +162,7 @@ export default function OnboardingPage() {
     if (step === 3) {
       return (
         members.every((member) => member.firstName.trim().length > 0 && member.sharePercentage >= 0) &&
-        Math.abs(shareTotal - 100) < 0.01
+        Math.abs(Math.round(shareTotal * 100) / 100 - 100) < 0.01
       );
     }
 
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
             <strong>{selectedProjectName || "Votre projet"}</strong>
             <span>{projectType.label}</span>
             <span>{members.length} membre{members.length > 1 ? "s" : ""}</span>
-            <span className={Math.abs(shareTotal - 100) < 0.01 ? "positive-balance" : "negative-balance"}>
+            <span className={Math.abs(Math.round(shareTotal * 100) / 100 - 100) < 0.01 ? "positive-balance" : "negative-balance"}>
               {shareTotal}% répartis
             </span>
             <span>{budgetRange.label}</span>
@@ -362,7 +362,7 @@ export default function OnboardingPage() {
                   <h2>Qui participe, et à quelle part ?</h2>
                   <p className="muted field-hint">Les emails seront collectés après la création du projet.</p>
                 </div>
-                <span className={`share-total ${Math.abs(shareTotal - 100) < 0.01 ? "valid" : "invalid"}`}>
+                <span className={`share-total ${Math.abs(Math.round(shareTotal * 100) / 100 - 100) < 0.01 ? "valid" : "invalid"}`}>
                   Total : {shareTotal} %
                 </span>
               </div>
